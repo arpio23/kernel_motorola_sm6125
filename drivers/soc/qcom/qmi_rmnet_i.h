@@ -17,21 +17,18 @@
 #include <linux/netdevice.h>
 #include <linux/skbuff.h>
 
-#define MAX_MQ_NUM 16
+#define IP_VER_4 4
+#define IP_VER_6 6
+
+#define MAX_MQ_NUM 10
 #define MAX_CLIENT_NUM 2
 #define MAX_FLOW_NUM 32
 #define DEFAULT_GRANT 1
 #define DFC_MAX_BEARERS_V01 16
-#define DEFAULT_MQ_NUM 0
-#define ACK_MQ_OFFSET (MAX_MQ_NUM - 1)
-#define INVALID_MQ 0xFF
 
 #define DFC_MODE_FLOW_ID 2
 #define DFC_MODE_MQ_NUM 3
-#define DFC_MODE_SA 4
-
 extern int dfc_mode;
-extern int dfc_qmap;
 
 struct rmnet_bearer_map {
 	struct list_head list;
@@ -46,9 +43,6 @@ struct rmnet_bearer_map {
 	bool tcp_bidir;
 	bool rat_switch;
 	bool tx_off;
-	u32 ack_txid;
-	u32 mq_idx;
-	u32 ack_mq_idx;
 };
 
 struct rmnet_flow_map {
@@ -68,6 +62,7 @@ struct svc_info {
 
 struct mq_map {
 	struct rmnet_bearer_map *bearer;
+	bool ancillary;
 };
 
 struct qos_info {
@@ -76,6 +71,7 @@ struct qos_info {
 	struct list_head flow_head;
 	struct list_head bearer_head;
 	struct mq_map mq[MAX_MQ_NUM];
+	u32 default_grant;
 	u32 tran_num;
 	spinlock_t qos_lock;
 };
@@ -137,13 +133,6 @@ void dfc_qmi_query_flow(void *dfc_data);
 int dfc_bearer_flow_ctl(struct net_device *dev,
 			struct rmnet_bearer_map *bearer,
 			struct qos_info *qos);
-
-int dfc_qmap_client_init(void *port, int index, struct svc_info *psvc,
-			 struct qmi_info *qmi);
-
-void dfc_qmap_client_exit(void *dfc_data);
-
-void dfc_qmap_send_ack(struct qos_info *qos, u8 bearer_id, u16 seq, u8 type);
 #else
 static inline struct rmnet_flow_map *
 qmi_rmnet_get_flow_map(struct qos_info *qos_info,
@@ -169,23 +158,23 @@ static inline void dfc_qmi_client_exit(void *dfc_data)
 {
 }
 
+static inline void
+dfc_qmi_burst_check(struct net_device *dev, struct qos_info *qos,
+		    int ip_type, u32 mark, unsigned int len)
+{
+}
+
+static inline void
+dfc_qmi_query_flow(void *dfc_data)
+{
+}
+
 static inline int
 dfc_bearer_flow_ctl(struct net_device *dev,
 		    struct rmnet_bearer_map *bearer,
 		    struct qos_info *qos)
 {
 	return 0;
-}
-
-static inline int
-dfc_qmap_client_init(void *port, int index, struct svc_info *psvc,
-		     struct qmi_info *qmi)
-{
-	return -EINVAL;
-}
-
-static inline void dfc_qmap_client_exit(void *dfc_data)
-{
 }
 #endif
 
