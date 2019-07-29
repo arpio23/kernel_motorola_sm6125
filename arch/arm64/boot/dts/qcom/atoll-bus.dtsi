@@ -27,7 +27,6 @@
 			<0x1620000 0x4000>,
 			<0x1700000 0x1F880>,
 			<0x9990000 0x1600>,
-			<0x1620000 0x4000>,
 			<0x1620000 0x4000>;
 
 		reg-names = "aggre1_noc-base", "aggre2_noc-base",
@@ -35,8 +34,7 @@
 			"gem_noc-base", "mc_virt-base",
 			"mmss_noc-base", "system_noc-base",
 			"ipa_virt-base", "compute_noc-base",
-			"npu_noc-base", "qup_virt-base",
-			"camnoc_virt-base";
+			"npu_noc-base", "qup_virt-base";
 
 		mbox-names = "apps_rsc", "disp_rsc";
 		mboxes = <&apps_rsc 0 &disp_rsc 0>;
@@ -338,6 +336,7 @@
 			qcom,qos-off = <4096>;
 			qcom,base-offset = <16384>;
 			qcom,sbm-offset = <0>;
+			qcom,bypass-qos-prg;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -350,6 +349,7 @@
 			qcom,qos-off = <4096>;
 			qcom,base-offset = <20480>;
 			qcom,sbm-offset = <0>;
+			qcom,bypass-qos-prg;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -362,6 +362,7 @@
 			qcom,qos-off = <4096>;
 			qcom,base-offset = <57344>;
 			qcom,sbm-offset = <0>;
+			qcom,bypass-qos-prg;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -400,6 +401,7 @@
 			qcom,qos-off = <128>;
 			qcom,base-offset = <176128>;
 			qcom,sbm-offset = <0>;
+			qcom,bypass-qos-prg;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -436,6 +438,7 @@
 			qcom,qos-off = <4096>;
 			qcom,base-offset = <36864>;
 			qcom,sbm-offset = <0>;
+			qcom,bypass-qos-prg;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -473,6 +476,7 @@
 			qcom,qos-off = <4096>;
 			qcom,base-offset = <45056>;
 			qcom,sbm-offset = <0>;
+			qcom,bypass-qos-prg;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -512,18 +516,6 @@
 			qcom,sbm-offset = <0>;
 			qcom,bypass-qos-prg;
 			qcom,bus-type = <1>;
-			clocks = <>;
-		};
-
-		fab_camnoc_virt: fab-camnoc_virt{
-			cell-id = <MSM_BUS_FAB_CAMNOC_VIRT>;
-			label = "fab-camnoc_virt";
-			qcom,fab-dev;
-			qcom,base-name = "camnoc_virt-base";
-			qcom,qos-off = <0>;
-			qcom,base-offset = <0>;
-			qcom,sbm-offset = <0>;
-			qcom,bypass-qos-prg;
 			clocks = <>;
 		};
 
@@ -586,12 +578,6 @@
 			qcom,bcms = <&bcm_cn1>;
 			qcom,ap-owned;
 			qcom,prio = <2>;
-			qcom,node-qos-clks {
-				clocks =
-				<&clock_gcc GCC_AGGRE_UFS_PHY_AXI_CLK>;
-				clock-names =
-				"clk-aggre-ufs-phy-axi-no-rate";
-			};
 		};
 
 		mas_xm_ufs_mem: mas-xm-ufs-mem {
@@ -650,6 +636,7 @@
 			qcom,bcms = <&bcm_ce0>;
 			qcom,ap-owned;
 			qcom,prio = <2>;
+			qcom,forwarding;
 		};
 
 		mas_qxm_ipa: mas-qxm-ipa {
@@ -662,6 +649,7 @@
 			qcom,bus-dev = <&fab_aggre2_noc>;
 			qcom,ap-owned;
 			qcom,prio = <2>;
+			qcom,forwarding;
 			qcom,defer-init-qos;
 			qcom,node-qos-bcms = <7035 0 1>;
 		};
@@ -688,42 +676,6 @@
 			qcom,bus-dev = <&fab_aggre2_noc>;
 			qcom,ap-owned;
 			qcom,prio = <2>;
-			qcom,node-qos-clks {
-				clocks =
-				<&clock_gcc GCC_AGGRE_USB3_PRIM_AXI_CLK>;
-				clock-names =
-				"clk-aggre-usb3-prim-axi-no-rate";
-			};
-		};
-
-		mas_qxm_camnoc_hf0_uncomp: mas-qxm-camnoc-hf0-uncomp {
-			cell-id = <MSM_BUS_MASTER_CAMNOC_HF0_UNCOMP>;
-			label = "mas-qxm-camnoc-hf0-uncomp";
-			qcom,buswidth = <32>;
-			qcom,agg-ports = <1>;
-			qcom,connections = <&slv_qns_camnoc_uncomp>;
-			qcom,bus-dev = <&fab_camnoc_virt>;
-			qcom,bcms = <&bcm_mm1>;
-		};
-
-		mas_qxm_camnoc_hf1_uncomp: mas-qxm-camnoc-hf1-uncomp {
-			cell-id = <MSM_BUS_MASTER_CAMNOC_HF1_UNCOMP>;
-			label = "mas-qxm-camnoc-hf1-uncomp";
-			qcom,buswidth = <32>;
-			qcom,agg-ports = <1>;
-			qcom,connections = <&slv_qns_camnoc_uncomp>;
-			qcom,bus-dev = <&fab_camnoc_virt>;
-			qcom,bcms = <&bcm_mm1>;
-		};
-
-		mas_qxm_camnoc_sf_uncomp: mas-qxm-camnoc-sf-uncomp {
-			cell-id = <MSM_BUS_MASTER_CAMNOC_SF_UNCOMP>;
-			label = "mas-qxm-camnoc-sf-uncomp";
-			qcom,buswidth = <32>;
-			qcom,agg-ports = <1>;
-			qcom,connections = <&slv_qns_camnoc_uncomp>;
-			qcom,bus-dev = <&fab_camnoc_virt>;
-			qcom,bcms = <&bcm_mm1>;
 		};
 
 		mas_qnm_npu: mas-qnm-npu {
@@ -849,7 +801,6 @@
 			qcom,bcms = <&bcm_sh4>;
 			qcom,ap-owned;
 			qcom,prio = <0>;
-			qcom,forwarding;
 		};
 
 		mas_acm_sys_tcu: mas-acm-sys-tcu {
@@ -888,7 +839,6 @@
 			qcom,bcms = <&bcm_sh3>;
 			qcom,ap-owned;
 			qcom,prio = <0>;
-			qcom,forwarding;
 		};
 
 		mas_qnm_mnoc_hf: mas-qnm-mnoc-hf {
@@ -988,26 +938,12 @@
 			qcom,bcms = <&bcm_mm1>;
 		};
 
-		mas_qxm_camnoc_hf0: mas-qxm-camnoc-hf0 {
+		mas_qxm_camnoc_hf: mas-qxm-camnoc-hf {
 			cell-id = <MSM_BUS_MASTER_CAMNOC_HF0>;
-			label = "mas-qxm-camnoc-hf0";
+			label = "mas-qxm-camnoc-hf";
 			qcom,buswidth = <32>;
-			qcom,agg-ports = <1>;
-			qcom,qport = <1>;
-			qcom,connections = <&slv_qns_mem_noc_hf>;
-			qcom,bus-dev = <&fab_mmss_noc>;
-			qcom,ap-owned;
-			qcom,prio = <0>;
-			qcom,forwarding;
-			qcom,node-qos-bcms = <7012 0 1>;
-		};
-
-		mas_qxm_camnoc_hf1: mas-qxm-camnoc-hf1 {
-			cell-id = <MSM_BUS_MASTER_CAMNOC_HF1>;
-			label = "mas-qxm-camnoc-hf1";
-			qcom,buswidth = <32>;
-			qcom,agg-ports = <1>;
-			qcom,qport = <2>;
+			qcom,agg-ports = <2>;
+			qcom,qport = <1 2>;
 			qcom,connections = <&slv_qns_mem_noc_hf>;
 			qcom,bus-dev = <&fab_mmss_noc>;
 			qcom,ap-owned;
@@ -1086,6 +1022,7 @@
 			qcom,bcms = <&bcm_mm1>;
 			qcom,ap-owned;
 			qcom,prio = <5>;
+			qcom,forwarding;
 			qcom,node-qos-bcms = <7012 0 1>;
 		};
 
@@ -1272,14 +1209,6 @@
 			qcom,buswidth = <4>;
 			qcom,agg-ports = <1>;
 			qcom,bus-dev = <&fab_aggre2_noc>;
-		};
-
-		slv_qns_camnoc_uncomp:slv-qns-camnoc-uncomp {
-			cell-id = <MSM_BUS_SLAVE_CAMNOC_UNCOMP>;
-			label = "slv-qns-camnoc-uncomp";
-			qcom,buswidth = <32>;
-			qcom,agg-ports = <1>;
-			qcom,bus-dev = <&fab_camnoc_virt>;
 		};
 
 		slv_qns_cdsp_gemnoc:slv-qns-cdsp-gemnoc {
