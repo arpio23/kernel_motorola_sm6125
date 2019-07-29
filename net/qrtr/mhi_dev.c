@@ -108,8 +108,6 @@ static void qrtr_mhi_dev_read(struct qrtr_mhi_dev_ep *qep)
 				bytes_read);
 			return;
 		}
-		if (bytes_read == 0)
-			return;
 
 		rc = qrtr_endpoint_post(&qep->ep, req.buf, req.transfer_len);
 		if (rc == -EINVAL)
@@ -159,9 +157,15 @@ static int qrtr_mhi_dev_open_channels(struct qrtr_mhi_dev_ep *qep)
 
 static void qrtr_mhi_dev_close_channels(struct qrtr_mhi_dev_ep *qep)
 {
+	int rc;
 
-	mhi_dev_close_channel(qep->in);
-	mhi_dev_close_channel(qep->out);
+	rc = mhi_dev_close_channel(qep->in);
+	if (rc < 0)
+		dev_err(qep->dev, "failed to close in channel %d\n", rc);
+
+	rc = mhi_dev_close_channel(qep->out);
+	if (rc < 0)
+		dev_err(qep->dev, "failed to close out channel %d\n", rc);
 }
 
 static void qrtr_mhi_dev_state_cb(struct mhi_dev_client_cb_data *cb_data)
