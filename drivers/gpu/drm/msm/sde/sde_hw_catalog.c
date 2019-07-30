@@ -3967,22 +3967,6 @@ static int _sde_hardware_pre_caps(struct sde_mdss_cfg *sde_cfg, uint32_t hw_rev)
 		sde_cfg->has_sui_blendstage = true;
 		sde_cfg->has_qos_fl_nocalc = true;
 		sde_cfg->has_decimation = true;
-	} else if (IS_ATOLL_TARGET(hw_rev)) {
-		sde_cfg->has_cwb_support = true;
-		sde_cfg->has_qsync = true;
-		sde_cfg->perf.min_prefill_lines = 24;
-		sde_cfg->vbif_qos_nlvl = 8;
-		sde_cfg->ts_prefill_rev = 2;
-		sde_cfg->ctl_rev = SDE_CTL_CFG_VERSION_1_0_0;
-		sde_cfg->delay_prg_fetch_start = true;
-		sde_cfg->sui_ns_allowed = true;
-		sde_cfg->sui_misr_supported = true;
-		sde_cfg->sui_block_xin_mask = 0x261;
-		sde_cfg->has_sui_blendstage = true;
-		sde_cfg->has_qos_fl_nocalc = true;
-		sde_cfg->has_3d_merge_reset = true;
-		clear_bit(MDSS_INTR_AD4_0_INTR, sde_cfg->mdss_irqs);
-		clear_bit(MDSS_INTR_AD4_1_INTR, sde_cfg->mdss_irqs);
 	} else {
 		SDE_ERROR("unsupported chipset id:%X\n", hw_rev);
 		sde_cfg->perf.min_prefill_lines = 0xffff;
@@ -4081,11 +4065,6 @@ void sde_hw_catalog_deinit(struct sde_mdss_cfg *sde_cfg)
 
 		for (j = VBIF_RT_CLIENT; j < VBIF_MAX_CLIENT; j++)
 			kfree(sde_cfg->vbif[i].qos_tbl[j].priority_lvl);
-	}
-
-	for (i = 0; i < sde_cfg->limit_count; i++) {
-		kfree(sde_cfg->limit_cfg[i].vector_cfg);
-		kfree(sde_cfg->limit_cfg[i].value_cfg);
 	}
 
 	for (i = 0; i < SDE_QOS_LUT_USAGE_MAX; i++) {
