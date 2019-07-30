@@ -29,7 +29,6 @@
 #include <drm/drm_irq.h>
 #include "sde_rsc_priv.h"
 #include "sde_dbg.h"
-#include "sde_trace.h"
 
 #define SDE_RSC_DRV_DBG_NAME		"sde_rsc_drv"
 #define SDE_RSC_WRAPPER_DBG_NAME	"sde_rsc_wrapper"
@@ -988,7 +987,6 @@ int sde_rsc_client_state_update(struct sde_rsc_client *caller_client,
 	}
 
 	pr_debug("state switch successfully complete: %d\n", state);
-	SDE_ATRACE_INT("rsc_state", state);
 	rsc->current_state = state;
 	SDE_EVT32(caller_client->id, caller_client->current_state,
 			state, rsc->current_state, SDE_EVTLOG_FUNC_EXIT);
@@ -1097,9 +1095,7 @@ int sde_rsc_client_trigger_vote(struct sde_rsc_client *caller_client,
 		rpmh_flush(rsc->disp_rsc);
 	}
 
-	if (rsc->hw_ops.bwi_status &&
-		(rsc->current_state == SDE_RSC_CMD_STATE ||
-		rsc->current_state == SDE_RSC_VID_STATE))
+	if (rsc->hw_ops.bwi_status && rsc->current_state == SDE_RSC_CMD_STATE)
 		rsc->hw_ops.bwi_status(rsc, bw_increase);
 	else if (rsc->hw_ops.tcs_use_ok)
 		rsc->hw_ops.tcs_use_ok(rsc);
@@ -1220,7 +1216,6 @@ end:
 	if (blen <= 0)
 		return 0;
 
-	blen = min_t(size_t, MAX_BUFFER_SIZE, count);
 	if (copy_to_user(buf, buffer, blen))
 		return -EFAULT;
 
@@ -1314,7 +1309,6 @@ end:
 	if (blen <= 0)
 		return 0;
 
-	blen = min_t(size_t, MAX_BUFFER_SIZE, count);
 	if (copy_to_user(buf, buffer, blen))
 		return -EFAULT;
 
