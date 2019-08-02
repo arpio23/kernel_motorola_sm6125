@@ -47,13 +47,6 @@
 				<RPMH_REGULATOR_LEVEL_RETENTION>;
 			qcom,min-dropout-voltage-level = <(-1)>;
 		};
-
-		cx_cdev: regulator-cdev {
-			compatible = "qcom,rpmh-reg-cdev";
-			mboxes = <&qmp_aop 0>;
-			qcom,reg-resource-name = "cx";
-			#cooling-cells = <2>;
-		};
 	};
 
 	rpmh-regulator-gfxlvl {
@@ -102,14 +95,6 @@
 				<RPMH_REGULATOR_LEVEL_MAX>;
 			qcom,init-voltage-level =
 				<RPMH_REGULATOR_LEVEL_RETENTION>;
-		};
-
-		mx_cdev: mx-cdev-lvl {
-			compatible = "qcom,regulator-cooling-device";
-			regulator-cdev-supply = <&VDD_MX_LEVEL>;
-			regulator-levels = <RPMH_REGULATOR_LEVEL_NOM
-					RPMH_REGULATOR_LEVEL_OFF>;
-			#cooling-cells = <2>;
 		};
 	};
 
@@ -696,9 +681,9 @@
 		pm6150l_l6: regulator-pm6150l-l6 {
 			regulator-name = "pm6150l_l6";
 			qcom,set = <RPMH_REGULATOR_SET_ALL>;
-			regulator-min-microvolt = <1648000>;
+			regulator-min-microvolt = <2696000>;
 			regulator-max-microvolt = <3304000>;
-			qcom,init-voltage = <1648000>;
+			qcom,init-voltage = <2696000>;
 			qcom,init-mode =
 				<RPMH_REGULATOR_MODE_LPM>;
 		};
@@ -815,10 +800,9 @@
 		qcom,resource-name = "bobc1";
 		qcom,regulator-type = "pmic5-bob";
 		qcom,supported-modes =
-			<RPMH_REGULATOR_MODE_PASS
-			RPMH_REGULATOR_MODE_LPM
+			<RPMH_REGULATOR_MODE_LPM
 			RPMH_REGULATOR_MODE_HPM>;
-		qcom,mode-threshold-currents = <0 1000000 2000000>;
+		qcom,mode-threshold-currents = <0 1>;
 		qcom,send-defaults;
 		BOB:
 		pm6150l_bob: regulator-pm6150l-bob {
