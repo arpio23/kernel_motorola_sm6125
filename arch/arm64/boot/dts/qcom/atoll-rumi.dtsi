@@ -134,10 +134,6 @@
 	status = "ok";
 };
 
-&thermal_zones {
-	/delete-node/ aoss-0-lowf;
-};
-
 &usb0 {
 	dwc3@a600000 {
 		usb-phy = <&usb_emu_phy>, <&usb_nop_phy>;
@@ -157,9 +153,5 @@
 };
 
 &pm6150_pdphy {
-	status = "disabled";
-};
-
-&qupv3_se9_i2c {
 	status = "disabled";
 };
