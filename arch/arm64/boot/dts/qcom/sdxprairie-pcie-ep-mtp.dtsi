@@ -44,7 +44,3 @@
 &mhi_net_device {
 	status = "okay";
 };
-
-&usb {
-	qcom,smmu-s1-bypass;
-};
