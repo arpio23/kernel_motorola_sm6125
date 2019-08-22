@@ -492,8 +492,7 @@ static int mhi_pm_mission_mode_transition(struct mhi_controller *mhi_cntrl)
 
 	read_unlock_bh(&mhi_cntrl->pm_lock);
 
-	/* setup support for additional features (SFR, timesync, etc.) */
-	mhi_init_sfr(mhi_cntrl);
+	/* setup support for time sync */
 	mhi_init_timesync(mhi_cntrl);
 
 	MHI_LOG("Adding new devices\n");
@@ -502,7 +501,7 @@ static int mhi_pm_mission_mode_transition(struct mhi_controller *mhi_cntrl)
 	mhi_create_devices(mhi_cntrl);
 
 	/* setup sysfs nodes for userspace votes */
-	mhi_create_sysfs(mhi_cntrl);
+	mhi_create_vote_sysfs(mhi_cntrl);
 
 	read_lock_bh(&mhi_cntrl->pm_lock);
 
@@ -524,7 +523,6 @@ static void mhi_pm_disable_transition(struct mhi_controller *mhi_cntrl,
 	struct mhi_cmd_ctxt *cmd_ctxt;
 	struct mhi_cmd *mhi_cmd;
 	struct mhi_event_ctxt *er_ctxt;
-	struct mhi_sfr_info *sfr_info = mhi_cntrl->mhi_sfr;
 	int ret, i;
 
 	MHI_LOG("Enter with from pm_state:%s MHI_STATE:%s to pm_state:%s\n",
@@ -613,19 +611,13 @@ static void mhi_pm_disable_transition(struct mhi_controller *mhi_cntrl,
 	MHI_LOG("Finish resetting channels\n");
 
 	/* remove support for userspace votes */
-	mhi_destroy_sysfs(mhi_cntrl);
+	mhi_destroy_vote_sysfs(mhi_cntrl);
 
 	MHI_LOG("Waiting for all pending threads to complete\n");
 	wake_up_all(&mhi_cntrl->state_event);
 	flush_work(&mhi_cntrl->st_worker);
 	flush_work(&mhi_cntrl->fw_worker);
 	flush_work(&mhi_cntrl->low_priority_worker);
-
-	if (sfr_info && sfr_info->buf_addr) {
-		mhi_free_coherent(mhi_cntrl, sfr_info->len, sfr_info->buf_addr,
-				  sfr_info->dma_addr);
-		sfr_info->buf_addr = NULL;
-	}
 
 	mutex_lock(&mhi_cntrl->pm_mutex);
 
@@ -944,18 +936,10 @@ EXPORT_SYMBOL(mhi_async_power_up);
 void mhi_control_error(struct mhi_controller *mhi_cntrl)
 {
 	enum MHI_PM_STATE cur_state;
-	struct mhi_sfr_info *sfr_info = mhi_cntrl->mhi_sfr;
 
 	MHI_LOG("Enter with pm_state:%s MHI_STATE:%s\n",
 		to_mhi_pm_state_str(mhi_cntrl->pm_state),
 		TO_MHI_STATE_STR(mhi_cntrl->dev_state));
-
-	/* copy subsystem failure reason string if supported */
-	if (sfr_info && sfr_info->buf_addr) {
-		memcpy(sfr_info->str, sfr_info->buf_addr, sfr_info->len);
-		pr_err("mhi: %s sfr: %s\n", mhi_cntrl->name,
-		       sfr_info->buf_addr);
-	}
 
 	write_lock_irq(&mhi_cntrl->pm_lock);
 	cur_state = mhi_tryset_pm_state(mhi_cntrl, MHI_PM_LD_ERR_FATAL_DETECT);
@@ -1403,8 +1387,11 @@ int __mhi_device_get_sync(struct mhi_controller *mhi_cntrl)
 
 	read_lock_bh(&mhi_cntrl->pm_lock);
 	mhi_cntrl->wake_get(mhi_cntrl, true);
-	if (MHI_PM_IN_SUSPEND_STATE(mhi_cntrl->pm_state))
-		mhi_trigger_resume(mhi_cntrl);
+	if (MHI_PM_IN_SUSPEND_STATE(mhi_cntrl->pm_state)) {
+		pm_wakeup_event(&mhi_cntrl->mhi_dev->dev, 0);
+		mhi_cntrl->runtime_get(mhi_cntrl, mhi_cntrl->priv_data);
+		mhi_cntrl->runtime_put(mhi_cntrl, mhi_cntrl->priv_data);
+	}
 	read_unlock_bh(&mhi_cntrl->pm_lock);
 
 	ret = wait_event_timeout(mhi_cntrl->state_event,
@@ -1481,9 +1468,10 @@ void mhi_device_put(struct mhi_device *mhi_dev, int vote)
 	if (vote & MHI_VOTE_DEVICE) {
 		atomic_dec(&mhi_dev->dev_vote);
 		read_lock_bh(&mhi_cntrl->pm_lock);
-		if (MHI_PM_IN_SUSPEND_STATE(mhi_cntrl->pm_state))
-			mhi_trigger_resume(mhi_cntrl);
-
+		if (MHI_PM_IN_SUSPEND_STATE(mhi_cntrl->pm_state)) {
+			mhi_cntrl->runtime_get(mhi_cntrl, mhi_cntrl->priv_data);
+			mhi_cntrl->runtime_put(mhi_cntrl, mhi_cntrl->priv_data);
+		}
 		mhi_cntrl->wake_put(mhi_cntrl, false);
 		read_unlock_bh(&mhi_cntrl->pm_lock);
 	}
