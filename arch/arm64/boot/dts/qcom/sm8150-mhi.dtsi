@@ -27,7 +27,6 @@
 		/* mhi bus specific settings */
 		mhi,max-channels = <111>;
 		mhi,timeout = <2000>;
-		mhi,name = "esoc0";
 
 		mhi_channels {
 			#address-cells = <1>;
@@ -404,7 +403,7 @@
 				reg = <109>;
 				label = "RMNET_CTL";
 				mhi,num-elements = <128>;
-				mhi,event-ring = <13>;
+				mhi,event-ring = <12>;
 				mhi,chan-dir = <1>;
 				mhi,data-type = <1>;
 				mhi,doorbell-mode = <2>;
@@ -415,7 +414,7 @@
 				reg = <110>;
 				label = "RMNET_CTL";
 				mhi,num-elements = <128>;
-				mhi,event-ring = <14>;
+				mhi,event-ring = <13>;
 				mhi,chan-dir = <2>;
 				mhi,data-type = <0>;
 				mhi,doorbell-mode = <2>;
@@ -1007,7 +1006,7 @@
 				reg = <109>;
 				label = "RMNET_CTL";
 				mhi,num-elements = <128>;
-				mhi,event-ring = <13>;
+				mhi,event-ring = <12>;
 				mhi,chan-dir = <1>;
 				mhi,data-type = <1>;
 				mhi,doorbell-mode = <2>;
@@ -1018,7 +1017,7 @@
 				reg = <110>;
 				label = "RMNET_CTL";
 				mhi,num-elements = <128>;
-				mhi,event-ring = <14>;
+				mhi,event-ring = <13>;
 				mhi,chan-dir = <2>;
 				mhi,data-type = <0>;
 				mhi,doorbell-mode = <2>;
