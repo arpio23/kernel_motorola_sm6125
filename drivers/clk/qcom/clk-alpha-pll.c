@@ -124,7 +124,6 @@
 #define FABIA_TEST_CTL_HI	0x20
 #define FABIA_OPMODE		0x2c
 #define FABIA_FRAC_VAL		0x38
-#define FABIA_PLL_CAL_L_VAL	0x3f
 #define FABIA_PLL_STANDBY	0x0
 #define FABIA_PLL_RUN		0x1
 #define FABIA_PLL_OUT_MASK	0x7
@@ -730,7 +729,9 @@ static long clk_alpha_pll_round_rate(struct clk_hw *hw, unsigned long rate,
 		return pll->min_supported_freq;
 
 	rate = alpha_pll_round_rate(pll, rate, *prate, &l, &a);
-	if (!pll->vco_table || alpha_pll_find_vco(pll, rate))
+	if ((pll->type == ALPHA_PLL && alpha_pll_find_vco(pll, rate)) ||
+		(pll->type == FABIA_PLL || alpha_pll_find_vco(pll, rate))
+		|| pll->type == AGERA_PLL)
 		return rate;
 
 	min_freq = pll->vco_table[0].min_freq;
@@ -1919,9 +1920,6 @@ int clk_fabia_pll_configure(struct clk_alpha_pll *pll, struct regmap *regmap,
 		regmap_write(regmap, pll->offset + PLL_L_VAL,
 						config->l);
 
-	regmap_write(regmap, pll->offset + FABIA_CAL_L_VAL,
-			FABIA_PLL_CAL_L_VAL);
-
 	if (config->frac)
 		regmap_write(regmap, pll->offset + FABIA_FRAC_VAL,
 						config->frac);
@@ -1980,7 +1978,7 @@ static int clk_fabia_pll_enable(struct clk_hw *hw)
 {
 	int ret;
 	struct clk_alpha_pll *pll = to_clk_alpha_pll(hw);
-	u32 val, opmode_val, off = pll->offset, l_val, cal_val;
+	u32 val, off = pll->offset, l_val;
 
 	ret = regmap_read(pll->clkr.regmap, off + PLL_MODE, &val);
 	if (ret)
@@ -1994,25 +1992,12 @@ static int clk_fabia_pll_enable(struct clk_hw *hw)
 		return wait_for_pll_enable_active(pll);
 	}
 
-	ret = regmap_read(pll->clkr.regmap, off + PLL_MODE, &opmode_val);
-	if (ret)
-		return ret;
-
-	/* Skip If PLL is already running */
-	if ((opmode_val & FABIA_PLL_RUN) && (val & PLL_OUTCTRL))
-		return 0;
-
 	ret = regmap_read(pll->clkr.regmap, pll->offset + PLL_L_VAL, &l_val);
 	if (ret)
 		return ret;
 
-	ret = regmap_read(pll->clkr.regmap, pll->offset + FABIA_CAL_L_VAL,
-			&cal_val);
-	if (ret)
-		return ret;
-
-	/* PLL has lost it's L or CAL value, needs reconfiguration */
-	if (!l_val || !cal_val)
+	/* PLL has lost it's L value, needs reconfiguration */
+	if (!l_val)
 		pll->inited = false;
 
 	if (unlikely(!pll->inited)) {
@@ -2022,8 +2007,7 @@ static int clk_fabia_pll_enable(struct clk_hw *hw)
 			pr_err("Failed to configure %s\n", clk_hw_get_name(hw));
 			return ret;
 		}
-		pr_warn("%s: PLL configuration lost, reconfiguration of PLL done.\n",
-				clk_hw_get_name(hw));
+		pr_warn("PLL configuration lost, reconfiguration of PLL done.\n");
 	}
 
 	/* Disable PLL output */
@@ -2183,33 +2167,13 @@ static int clk_fabia_pll_set_rate(struct clk_hw *hw, unsigned long rate,
 {
 	struct clk_alpha_pll *pll = to_clk_alpha_pll(hw);
 	unsigned long rrate;
-	u32 regval, l, off = pll->offset, cal_val;
+	u32 regval, l, off = pll->offset;
 	u64 a;
 	int ret;
 
 	ret = regmap_read(pll->clkr.regmap, off + PLL_MODE, &regval);
 	if (ret)
 		return ret;
-
-	ret = regmap_read(pll->clkr.regmap, pll->offset + FABIA_CAL_L_VAL,
-			&cal_val);
-	if (ret)
-		return ret;
-
-	/* PLL has lost it's CAL value, needs reconfiguration */
-	if (!cal_val)
-		pll->inited = false;
-
-	if (unlikely(!pll->inited)) {
-		ret = clk_fabia_pll_configure(pll, pll->clkr.regmap,
-				pll->config);
-		if (ret) {
-			pr_err("Failed to configure %s\n", clk_hw_get_name(hw));
-			return ret;
-		}
-		pr_warn("%s: PLL configuration lost, reconfiguration of PLL done.\n",
-				clk_hw_get_name(hw));
-	}
 
 	rrate = alpha_pll_round_rate(pll, rate, prate, &l, &a);
 	/*
@@ -2235,7 +2199,6 @@ static void clk_fabia_pll_list_registers(struct seq_file *f, struct clk_hw *hw)
 	static struct clk_register_data data[] = {
 		{"PLL_MODE", 0x0},
 		{"PLL_L_VAL", 0x4},
-		{"PLL_CAL_L_VAL", 0x8},
 		{"PLL_FRAC_VAL", 0x38},
 		{"PLL_USER_CTL_LO", 0xc},
 		{"PLL_USER_CTL_HI", 0x10},
@@ -2271,7 +2234,6 @@ const struct clk_ops clk_fabia_pll_ops = {
 	.prepare = clk_fabia_pll_prepare,
 	.enable = clk_fabia_pll_enable,
 	.disable = clk_fabia_pll_disable,
-	.is_enabled = clk_alpha_pll_is_enabled,
 	.recalc_rate = clk_fabia_pll_recalc_rate,
 	.round_rate = clk_alpha_pll_round_rate,
 	.set_rate = clk_fabia_pll_set_rate,
@@ -2283,7 +2245,6 @@ EXPORT_SYMBOL(clk_fabia_pll_ops);
 const struct clk_ops clk_fabia_fixed_pll_ops = {
 	.enable = clk_fabia_pll_enable,
 	.disable = clk_fabia_pll_disable,
-	.is_enabled = clk_alpha_pll_is_enabled,
 	.recalc_rate = clk_fabia_pll_recalc_rate,
 	.round_rate = clk_alpha_pll_round_rate,
 	.list_registers = clk_fabia_pll_list_registers,
