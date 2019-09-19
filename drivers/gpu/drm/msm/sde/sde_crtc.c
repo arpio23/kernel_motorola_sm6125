@@ -3142,14 +3142,14 @@ static void _sde_crtc_set_dim_layer_v1(struct drm_crtc *crtc,
 		SDE_ERROR("invalid number of dim_layers:%d", count);
 		return;
 	}
-
 	/* populate from user space */
 	cstate->num_dim_layers = count;
 	for (i = 0; i < count; i++) {
 		user_cfg = &dim_layer_v1.layer_cfg[i];
 
 		dim_layer[i].flags = user_cfg->flags;
-		dim_layer[i].stage = user_cfg->stage;
+		dim_layer[i].stage = (kms->catalog->has_base_layer) ?
+			user_cfg->stage : user_cfg->stage + SDE_STAGE_0;
 
 		dim_layer[i].rect.x = user_cfg->rect.x1;
 		dim_layer[i].rect.y = user_cfg->rect.y1;
@@ -5031,7 +5031,7 @@ static void sde_crtc_enable(struct drm_crtc *crtc,
 
 /* no input validation - caller API has all the checks */
 static int _sde_crtc_excl_dim_layer_check(struct drm_crtc_state *state,
-		struct plane_state pstates[], int cnt, bool base_layer_staged)
+		struct plane_state pstates[], int cnt)
 {
 	struct sde_crtc_state *cstate = to_sde_crtc_state(state);
 	struct drm_display_mode *mode = &state->adjusted_mode;
@@ -5058,8 +5058,6 @@ static int _sde_crtc_excl_dim_layer_check(struct drm_crtc_state *state,
 					mode->vdisplay);
 			rc = -E2BIG;
 			goto end;
-		} else if (!base_layer_staged) {
-			cstate->dim_layer[i].stage += SDE_STAGE_0;
 		}
 	}
 
@@ -5386,8 +5384,8 @@ static int sde_crtc_atomic_check(struct drm_crtc *crtc,
 
 		/* check dim layer stage with every plane */
 		for (i = 0; i < cstate->num_dim_layers; i++) {
-			if (cstate->dim_layer[i].stage
-					== (pstates[cnt].stage)) {
+			if (cstate->dim_layer[i].stage == (pstates[cnt].stage
+						+ inc_sde_stage)) {
 				SDE_ERROR(
 					"plane:%d/dim_layer:%i-same stage:%d\n",
 					plane->base.id, i,
@@ -5451,8 +5449,7 @@ static int sde_crtc_atomic_check(struct drm_crtc *crtc,
 	if (cnt > 0)
 		sort(pstates, cnt, sizeof(pstates[0]), pstate_cmp, NULL);
 
-	rc = _sde_crtc_excl_dim_layer_check(state, pstates, cnt,
-				kms->catalog->has_base_layer);
+	rc = _sde_crtc_excl_dim_layer_check(state, pstates, cnt);
 	if (rc)
 		goto end;
 
