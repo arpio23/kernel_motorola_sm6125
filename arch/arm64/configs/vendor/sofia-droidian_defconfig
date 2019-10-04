@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 4.14.141 Kernel Configuration
+# Linux/arm64 4.14.146 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_64BIT=y
@@ -152,7 +152,6 @@ CONFIG_BLK_CGROUP=y
 CONFIG_CGROUP_WRITEBACK=y
 CONFIG_CGROUP_SCHED=y
 CONFIG_FAIR_GROUP_SCHED=y
-# CONFIG_CFS_BANDWIDTH is not set
 CONFIG_RT_GROUP_SCHED=y
 # CONFIG_CGROUP_PIDS is not set
 # CONFIG_CGROUP_RDMA is not set
@@ -4297,8 +4296,6 @@ CONFIG_ION=y
 # CONFIG_ION_CMA_HEAP is not set
 # CONFIG_ION_FORCE_DMA_SYNC is not set
 # CONFIG_ION_DEFER_FREE_NO_SCHED_IDLE is not set
-# CONFIG_FIQ_DEBUGGER is not set
-# CONFIG_FIQ_WATCHDOG is not set
 # CONFIG_STAGING_BOARD is not set
 # CONFIG_LTE_GDM724X is not set
 # CONFIG_LNET is not set
