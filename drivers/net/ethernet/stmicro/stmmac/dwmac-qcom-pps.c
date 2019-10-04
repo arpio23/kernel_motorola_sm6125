@@ -192,7 +192,6 @@ int ppsout_config(struct stmmac_priv *priv, struct ifr_data_struct *req)
 	int interval, width;
 	u32 sub_second_inc, value;
 	void __iomem *ioaddr = priv->ioaddr;
-	u32 val;
 
 	if (!eth_pps_cfg->ppsout_start) {
 		ppsout_stop(priv, eth_pps_cfg);
@@ -204,7 +203,7 @@ int ppsout_config(struct stmmac_priv *priv, struct ifr_data_struct *req)
 	priv->hw->ptp->init_systime(priv->ptpaddr, 0, 0);
 	priv->hw->ptp->adjust_systime(priv->ptpaddr, 0, 0, 0, 1);
 
-	val = readl_relaxed(ioaddr + MAC_PPS_CONTROL);
+	u32 val = readl_relaxed(ioaddr + MAC_PPS_CONTROL);
 
 	sub_second_inc = pps_config_sub_second_increment
 			 (priv->ptpaddr, eth_pps_cfg->ptpclk_freq,
