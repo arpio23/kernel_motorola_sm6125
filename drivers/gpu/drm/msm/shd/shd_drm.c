@@ -275,12 +275,7 @@ static void shd_display_enable_base(struct drm_device *dev,
 	conn_state->best_encoder = base->encoder;
 	connector->encoder = base->encoder;
 
-	ret = drm_atomic_set_mode_for_crtc(crtc_state, &base->mode);
-	if (ret) {
-		SDE_ERROR("failed to set mode for crtc\n");
-		goto out;
-	}
-
+	drm_atomic_set_mode_for_crtc(crtc_state, &base->mode);
 	drm_mode_copy(&crtc_state->adjusted_mode, &base->mode);
 	drm_mode_copy(&base->crtc->mode, &base->mode);
 
@@ -330,8 +325,6 @@ static void shd_display_enable_base(struct drm_device *dev,
 
 	base->enabled = true;
 	base->enable_changed = true;
-out:
-	return;
 }
 
 static void shd_display_disable_base(struct drm_device *dev,
