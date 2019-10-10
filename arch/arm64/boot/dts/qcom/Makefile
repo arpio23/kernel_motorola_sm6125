@@ -379,6 +379,7 @@ dtb-$(CONFIG_ARCH_SDXPRAIRIE) += sdxprairie-rumi.dtb \
 	sdxprairie-mtp-cpe.dtb \
 	sdxprairie-cdp-cpe.dtb \
 	sdxprairie-mtp-le-cpe.dtb \
+	sdxprairie-v2-mtp-le-cpe.dtb \
 	sdxprairie-cdp-256.dtb \
 	sdxprairie-mtp-256.dtb \
 	sdxprairie-mtp-aqc.dtb \
@@ -387,10 +388,7 @@ dtb-$(CONFIG_ARCH_SDXPRAIRIE) += sdxprairie-rumi.dtb \
 	sdxprairie-v2-mtp.dtb \
 	sa515m-ccard.dtb \
 	sa515m-ccard-pcie-ep.dtb \
-	sa515m-ccard-usb-ep.dtb \
-	sa515m-v2-ccard.dtb \
-	sa515m-v2-ccard-pcie-ep.dtb \
-	sa515m-v2-ccard-usb-ep.dtb
+	sa515m-ccard-usb-ep.dtb
 endif # CONFIG_MMI_DEVICE_DTBS
 
 ifeq ($(CONFIG_ARM64),y)

@@ -12,7 +12,6 @@
 
 /dts-v1/;
 
-#include "sdxprairie.dtsi"
 #include "sa515m-ccard.dtsi"
 
 / {
@@ -47,10 +46,6 @@
 };
 
 &mhi_net_device {
-	status = "okay";
-};
-
-&mhi_dev_qrtr {
 	status = "okay";
 };
 
