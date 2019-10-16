@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 4.14.146 Kernel Configuration
+# Linux/arm64 4.14.147 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_64BIT=y
@@ -4402,6 +4402,7 @@ CONFIG_CLOCK_CPU_OSM=y
 # CONFIG_MSM_GPUCC_SM8150 is not set
 # CONFIG_MSM_GCC_SDMSHRIKE is not set
 # CONFIG_MSM_CAMCC_SDMSHRIKE is not set
+# CONFIG_MSM_DEBUGCC_SDMSHRIKE is not set
 # CONFIG_MDM_GCC_QCS405 is not set
 # CONFIG_MDM_DEBUGCC_QCS405 is not set
 # CONFIG_CLOCK_CPU_QCS405 is not set
