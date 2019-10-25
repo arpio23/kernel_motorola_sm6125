@@ -595,7 +595,7 @@ static bool of_thermal_is_trips_triggered(struct thermal_zone_device *tz,
 	bool triggered = false;
 
 	mutex_lock(&tz->lock);
-	last_temp = tz->temperature;
+	last_temp = tz->last_temperature;
 	for (trip = 0; trip < data->ntrips; trip++) {
 
 		if (!tz->tzp->tracks_low) {
@@ -1482,8 +1482,8 @@ int __init of_parse_thermal_zones(void)
 			goto exit_free;
 		}
 
-		/* no_hwmon should be set in dtsi */
-		tzp->no_hwmon = !of_property_read_bool(child, "thermal-has-hwmon");
+		/* No hwmon because there might be hwmon drivers registering */
+		tzp->no_hwmon = true;
 
 		if (!of_property_read_string(child, "thermal-governor",
 						&governor_name))
