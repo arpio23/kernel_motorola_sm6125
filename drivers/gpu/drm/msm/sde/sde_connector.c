@@ -434,10 +434,8 @@ void sde_connector_schedule_status_work(struct drm_connector *connector,
 		return;
 
 	sde_connector_get_info(connector, &info);
-	if ((c_conn->ops.force_esd_disable &&
-		(c_conn->ops.force_esd_disable(c_conn->display) == false)) &&
-		(c_conn->ops.check_status &&
-		(info.capabilities & MSM_DISPLAY_ESD_ENABLED))) {
+	if (c_conn->ops.check_status &&
+		(info.capabilities & MSM_DISPLAY_ESD_ENABLED)) {
 		if (en) {
 			u32 interval;
 
@@ -1514,7 +1512,7 @@ int sde_connector_helper_reset_custom_properties(
 	enum msm_mdp_conn_property prop_idx;
 
 	if (!connector || !connector_state) {
-		SDE_ERROR("invalid params %d\n", __LINE__);
+		SDE_ERROR("invalid params\n");
 		return -EINVAL;
 	}
 

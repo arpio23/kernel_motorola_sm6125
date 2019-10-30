@@ -300,3 +300,7 @@
 &sde_dp {
 	 qcom,dp-aux-switch=<&fsa4480>;
 };
+
+&sde_dp {
+	 qcom,dp-aux-switch=<&fsa4480>;
+};

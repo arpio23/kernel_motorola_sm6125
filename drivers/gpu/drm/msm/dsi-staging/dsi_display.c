@@ -2803,20 +2803,6 @@ static int dsi_display_set_clk_src(struct dsi_display *display, bool on)
 	struct dsi_display_ctrl *m_ctrl, *ctrl;
 	struct dsi_clk_link_set *src;
 
-	/*
-	 * For CPHY mode, the parent of mux_clks need to be set
-	 * to Cphy_clks to have correct dividers for byte and
-	 * pixel clocks.
-	 */
-	if (display->panel->host_config.phy_type == DSI_PHY_TYPE_CPHY) {
-		rc = dsi_clk_update_parent(&display->clock_info.cphy_clks,
-			      &display->clock_info.mux_clks);
-		if (rc) {
-			pr_err("failed update mux parent to CPHY\n");
-			return rc;
-		}
-	}
-
 	/* if XO clk is defined, select XO clk src when DSI is disabled */
 	if (on)
 		src = &display->clock_info.mux_clks;
