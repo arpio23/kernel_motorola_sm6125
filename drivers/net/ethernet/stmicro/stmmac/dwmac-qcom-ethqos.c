@@ -555,7 +555,16 @@ static void ethqos_handle_phy_interrupt(struct qcom_ethqos *ethqos)
 
 	struct net_device *dev = platform_get_drvdata(pdev);
 	struct stmmac_priv *priv = netdev_priv(dev);
+
 	int micrel_intr_status = 0;
+
+	phy_intr_status = ethqos_mdio_read(priv, priv->plat->phy_addr,
+					   DWC_ETH_QOS_PHY_INTR_STATUS);
+
+	if (dev->phydev && (phy_intr_status & LINK_UP_STATE))
+		phy_mac_interrupt(dev->phydev, LINK_UP);
+	else if (dev->phydev && (phy_intr_status & LINK_DOWN_STATE))
+		phy_mac_interrupt(dev->phydev, LINK_DOWN);
 
 	if ((dev->phydev->phy_id & dev->phydev->drv->phy_id_mask)
 		== MICREL_PHY_ID) {
@@ -591,9 +600,9 @@ static void ethqos_handle_phy_interrupt(struct qcom_ethqos *ethqos)
 		 ethqos_mdio_read(
 		    priv, priv->plat->phy_addr, DWC_ETH_QOS_PHY_INTR_STATUS);
 
-		if (dev->phydev && (phy_intr_status & LINK_UP_STATE))
+		if (phy_intr_status & LINK_UP_STATE)
 			phy_mac_interrupt(dev->phydev, LINK_UP);
-		else if (dev->phydev && (phy_intr_status & LINK_DOWN_STATE))
+		else if (phy_intr_status & LINK_DOWN_STATE)
 			phy_mac_interrupt(dev->phydev, LINK_DOWN);
 	}
 }
