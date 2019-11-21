@@ -195,7 +195,7 @@ static int ipa_mhi_start_gsi_channel(enum ipa_client_type client,
 	struct gsi_evt_ring_props ev_props;
 	struct ipa_mhi_msi_info *msi;
 	struct gsi_chan_props ch_props;
-	union gsi_channel_scratch ch_scratch;
+	union __packed gsi_channel_scratch ch_scratch;
 	struct ipa3_ep_context *ep;
 	const struct ipa_gsi_ep_config *ep_cfg;
 	struct ipa_ep_cfg_ctrl ep_cfg_ctrl;
@@ -596,12 +596,13 @@ fail_reset_channel:
 
 int ipa3_mhi_resume_channels_internal(enum ipa_client_type client,
 		bool LPTransitionRejected, bool brstmode_enabled,
-		union gsi_channel_scratch ch_scratch, u8 index)
+		union __packed gsi_channel_scratch ch_scratch, u8 index,
+		bool is_switch_to_dbmode)
 {
 	int res;
 	int ipa_ep_idx;
 	struct ipa3_ep_context *ep;
-	union gsi_channel_scratch gsi_ch_scratch;
+	union __packed gsi_channel_scratch gsi_ch_scratch;
 
 	IPA_MHI_FUNC_ENTRY();
 
@@ -636,12 +637,17 @@ int ipa3_mhi_resume_channels_internal(enum ipa_client_type client,
 		 * For IPA-->MHI pipe:
 		 * always restore the polling mode bit.
 		 */
-		if (IPA_CLIENT_IS_PROD(client))
-			ch_scratch.mhi.polling_mode =
-				IPA_MHI_POLLING_MODE_DB_MODE;
-		else
+		if (IPA_CLIENT_IS_PROD(client)) {
+			if (is_switch_to_dbmode)
+				ch_scratch.mhi.polling_mode =
+					IPA_MHI_POLLING_MODE_DB_MODE;
+			else
+				ch_scratch.mhi.polling_mode =
+					gsi_ch_scratch.mhi.polling_mode;
+		} else {
 			ch_scratch.mhi.polling_mode =
 				gsi_ch_scratch.mhi.polling_mode;
+		}
 
 		/* Use GSI update API to not affect non-SWI fields
 		 * inside the scratch while in suspend-resume operation

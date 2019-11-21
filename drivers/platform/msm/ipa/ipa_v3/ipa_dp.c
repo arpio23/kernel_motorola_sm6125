@@ -3190,8 +3190,11 @@ void ipa3_lan_rx_cb(void *priv, enum ipa_dp_evt_type evt, unsigned long data)
 	metadata = status.metadata;
 	ucp = status.ucp;
 	ep = &ipa3_ctx->ep[src_pipe];
-	if (unlikely(src_pipe >= ipa3_ctx->ipa_num_pipes)) {
-		IPAERR("drop pipe=%d\n", src_pipe);
+	if (unlikely(src_pipe >= ipa3_ctx->ipa_num_pipes ||
+		!ep->valid ||
+		!ep->client_notify)) {
+		IPAERR_RL("drop pipe=%d ep_valid=%d client_notify=%pK\n",
+		  src_pipe, ep->valid, ep->client_notify);
 		dev_kfree_skb_any(rx_skb);
 		return;
 	}
@@ -3213,12 +3216,7 @@ void ipa3_lan_rx_cb(void *priv, enum ipa_dp_evt_type evt, unsigned long data)
 			metadata, *(u32 *)rx_skb->cb);
 	IPADBG_LOW("ucp: %d\n", *(u8 *)(rx_skb->cb + 4));
 
-	if (likely((!atomic_read(&ep->disconnect_in_progress)) &&
-				ep->valid && ep->client_notify))
-		ep->client_notify(ep->priv, IPA_RECEIVE,
-				(unsigned long)(rx_skb));
-	else
-		dev_kfree_skb_any(rx_skb);
+	ep->client_notify(ep->priv, IPA_RECEIVE, (unsigned long)(rx_skb));
 }
 
 static void ipa3_recycle_rx_wrapper(struct ipa3_rx_pkt_wrapper *rx_pkt)
@@ -4589,7 +4587,7 @@ static int ipa_gsi_setup_transfer_ring(struct ipa3_ep_context *ep,
 	u32 ring_size, struct ipa3_sys_context *user_data, gfp_t mem_flag)
 {
 	dma_addr_t dma_addr;
-	union gsi_channel_scratch ch_scratch;
+	union __packed gsi_channel_scratch ch_scratch;
 	struct gsi_chan_props gsi_channel_props;
 	const struct ipa_gsi_ep_config *gsi_ep_info;
 	int result;

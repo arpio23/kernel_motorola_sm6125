@@ -899,7 +899,7 @@ struct ipa3_ep_context {
 	unsigned long gsi_chan_hdl;
 	unsigned long gsi_evt_ring_hdl;
 	struct ipa_gsi_ep_mem_info gsi_mem_info;
-	union gsi_channel_scratch chan_scratch;
+	union __packed gsi_channel_scratch chan_scratch;
 	struct gsi_chan_xfer_notify xfer_notify;
 	bool xfer_notify_valid;
 	struct ipa_ep_cfg cfg;
@@ -918,7 +918,7 @@ struct ipa3_ep_context {
 	struct ipa3_wlan_stats wstats;
 	u32 uc_offload_state;
 	u32 gsi_offload_state;
-	atomic_t disconnect_in_progress;
+	bool disconnect_in_progress;
 	u32 qmi_request_sent;
 	u32 eot_in_poll_err;
 	bool ep_delay_set;
@@ -956,7 +956,7 @@ struct ipa_request_gsi_channel_params {
 	struct gsi_evt_ring_props evt_ring_params;
 	union __packed gsi_evt_scratch evt_scratch;
 	struct gsi_chan_props chan_params;
-	union gsi_channel_scratch chan_scratch;
+	union __packed gsi_channel_scratch chan_scratch;
 };
 
 enum ipa3_sys_pipe_policy {
@@ -2637,7 +2637,8 @@ bool ipa3_has_open_aggr_frame(enum ipa_client_type client);
 
 int ipa3_mhi_resume_channels_internal(enum ipa_client_type client,
 		bool LPTransitionRejected, bool brstmode_enabled,
-		union gsi_channel_scratch ch_scratch, u8 index);
+		union __packed gsi_channel_scratch ch_scratch, u8 index,
+		bool is_switch_to_dbmode);
 
 int ipa3_mhi_destroy_channel(enum ipa_client_type client);
 
@@ -2874,8 +2875,6 @@ int ipa3_uc_debug_stats_dealloc(uint32_t prot_id);
 void ipa3_tag_destroy_imm(void *user1, int user2);
 const struct ipa_gsi_ep_config *ipa3_get_gsi_ep_info
 	(enum ipa_client_type client);
-
-bool ipa3_check_idr_if_freed(void *ptr);
 
 int ipa3_wigig_init_i(void);
 int ipa3_wigig_uc_init(
