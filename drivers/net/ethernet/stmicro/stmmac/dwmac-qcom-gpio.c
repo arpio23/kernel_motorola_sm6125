@@ -89,7 +89,8 @@ int ethqos_init_reqgulators(struct qcom_ethqos *ethqos)
 	}
 
 	if (of_property_read_bool(ethqos->pdev->dev.of_node,
-				  "vreg_rgmii-supply")) {
+				  "vreg_rgmii-supply") && (2500000 ==
+		   regulator_get_voltage(ethqos->reg_rgmii_io_pads))) {
 		ethqos->reg_rgmii =
 		devm_regulator_get(&ethqos->pdev->dev, EMAC_VREG_RGMII_NAME);
 		if (IS_ERR(ethqos->reg_rgmii)) {
@@ -219,7 +220,6 @@ int ethqos_init_pinctrl(struct device *dev)
 			continue;
 
 		pinctrl_state = pinctrl_lookup_state(pinctrl, name);
-
 		if (IS_ERR_OR_NULL(pinctrl_state)) {
 			ret = PTR_ERR(pinctrl_state);
 			ETHQOSERR("lookup_state %s failed %d\n", name, ret);
@@ -229,7 +229,6 @@ int ethqos_init_pinctrl(struct device *dev)
 		ETHQOSINFO("pinctrl_lookup_state %s succeded\n", name);
 
 		ret = pinctrl_select_state(pinctrl, pinctrl_state);
-
 		if (ret) {
 			ETHQOSERR("select_state %s failed %d\n", name, ret);
 			return ret;
