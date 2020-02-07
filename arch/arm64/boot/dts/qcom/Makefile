@@ -491,7 +491,9 @@ dtb-$(CONFIG_ARCH_SDXPRAIRIE) += sdxprairie-rumi.dtb \
 	sa515m-v2-ccard-usb-ep.dtb
 endif # CONFIG_MMI_DEVICE_DTBS
 
-dtb-$(CONFIG_ARCH_MDM9607) += mdm9607-mtp.dtb
+dtb-$(CONFIG_ARCH_MDM9607) += mdm9607-cdp.dtb \
+        mdm9607-mtp.dtb \
+	mdm9607-rcm.dtb \
 
 dtb-$(CONFIG_ARCH_SDM660) += sdm660-sim.dtb \
 	sdm660-internal-codec-cdp.dtb \
