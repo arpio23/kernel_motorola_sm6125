@@ -2163,7 +2163,6 @@ static int sony_play_effect(struct input_dev *dev, void *data,
 
 static int sony_init_ff(struct sony_sc *sc)
 {
-
 	struct hid_input *hidinput;
 	struct input_dev *input_dev;
 
