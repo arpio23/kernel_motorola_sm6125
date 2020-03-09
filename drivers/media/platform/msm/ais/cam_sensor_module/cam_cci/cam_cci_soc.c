@@ -60,6 +60,14 @@ int cam_cci_init(struct v4l2_subdev *sd,
 	axi_vote.compressed_bw_ab = CAM_CPAS_DEFAULT_AXI_BW;
 	axi_vote.uncompressed_bw = CAM_CPAS_DEFAULT_AXI_BW;
 
+	/* Enable Regulators and IRQ*/
+	rc = cam_soc_util_enable_platform_resource(soc_info, true,
+		CAM_LOWSVS_VOTE, true);
+	if (rc < 0) {
+		CAM_ERR(CAM_CCI, "request platform resources failed");
+		goto platform_enable_failed;
+	}
+
 	rc = cam_cpas_start(cci_dev->cpas_handle,
 		&ahb_vote, &axi_vote);
 	if (rc != 0)
