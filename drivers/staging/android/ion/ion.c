@@ -48,6 +48,7 @@
 #include "ion_secure_util.h"
 
 static struct ion_device *internal_dev;
+static atomic_long_t total_heap_bytes;
 
 int ion_walk_heaps(int heap_id, enum ion_heap_type type, void *data,
 		   int (*f)(struct ion_heap *heap, void *data))
@@ -151,9 +152,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
 	INIT_LIST_HEAD(&buffer->vmas);
 	mutex_init(&buffer->lock);
 
-	buffer->pid = task_pid_nr(current->group_leader);
-	buffer->client_pids[buffer->ref_cnt++] = buffer->pid;
-
 	if (IS_ENABLED(CONFIG_ION_FORCE_DMA_SYNC)) {
 		int i;
 		struct scatterlist *sg;
@@ -175,6 +173,7 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
 	ion_buffer_add(dev, buffer);
 	mutex_unlock(&dev->buffer_lock);
 	atomic_long_add(len, &heap->total_allocated);
+	atomic_long_add(len, &total_heap_bytes);
 	return buffer;
 
 err1:
@@ -204,6 +203,7 @@ static void _ion_buffer_destroy(struct ion_buffer *buffer)
 	mutex_lock(&dev->buffer_lock);
 	rb_erase(&buffer->node, &dev->buffers);
 	mutex_unlock(&dev->buffer_lock);
+	atomic_long_sub(buffer->size, &total_heap_bytes);
 
 	atomic_long_sub(buffer->size, &buffer->heap->total_allocated);
 	if (heap->flags & ION_HEAP_FLAG_DEFER_FREE)
@@ -475,28 +475,6 @@ static const struct vm_operations_struct ion_vma_ops = {
 	.close = ion_vm_close,
 };
 
-
-static int ion_dma_buf_import_buf_add_by_moto(struct dma_buf *dmabuf)
-{
-	struct ion_buffer *buffer = dmabuf->priv;
-	int i;
-	int found_pid = 0;
-	pid_t task_pid = task_pid_nr(current->group_leader);
-
-	mutex_lock(&buffer->lock);
-	for (i = 0; i < buffer->ref_cnt && i < MAX_CLIENTS_NUM; i++) {
-		if (buffer->client_pids[i] == task_pid) {
-			found_pid = 1;
-			break;
-		}
-	}
-	if (!found_pid && buffer->ref_cnt < MAX_CLIENTS_NUM)
-		buffer->client_pids[buffer->ref_cnt++] = task_pid;
-
-	mutex_unlock(&buffer->lock);
-
-	return 0;
-}
 static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 {
 	struct ion_buffer *buffer = dmabuf->priv;
@@ -519,8 +497,6 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 	/* now map it to userspace */
 	ret = buffer->heap->ops->map_user(buffer->heap, buffer, vma);
 	mutex_unlock(&buffer->lock);
-
-	ion_dma_buf_import_buf_add_by_moto(dmabuf);
 
 	if (ret)
 		pr_err("%s: failure mapping buffer to userspace\n",
@@ -1074,7 +1050,6 @@ static const struct dma_buf_ops dma_buf_ops = {
 	.vmap = ion_dma_buf_vmap,
 	.vunmap = ion_dma_buf_vunmap,
 	.get_flags = ion_dma_buf_get_flags,
-	.import_buf_add_by_moto = ion_dma_buf_import_buf_add_by_moto,
 };
 
 struct dma_buf *ion_alloc_dmabuf(size_t len, unsigned int heap_id_mask,
@@ -1326,46 +1301,55 @@ void ion_device_add_heap(struct ion_device *dev, struct ion_heap *heap)
 }
 EXPORT_SYMBOL(ion_device_add_heap);
 
-static int ion_debug_allbufs_show(struct seq_file *s, void *unused)
+static ssize_t
+total_heaps_kb_show(struct kobject *kobj, struct kobj_attribute *attr,
+		    char *buf)
 {
-	struct ion_device *dev = s->private;
-	struct rb_node *n;
-	int i;
+	u64 size_in_bytes = atomic_long_read(&total_heap_bytes);
 
-	seq_printf(s, "%16.s %16.s %12.s %12.s %20.s    %s\n", "heap",
-		"buffer", "size", "ref cnt", "allocator", "references");
-
-	down_read(&dev->lock);
-	mutex_lock(&dev->buffer_lock);
-	for (n = rb_first(&dev->buffers); n; n = rb_next(n)) {
-		struct ion_buffer *buf = rb_entry(n, struct ion_buffer, node);
-		int buf_refcount = buf->ref_cnt;
-		seq_printf(s, "%16.s %16pK %12.x %12.d %20.d    %s",
-			buf->heap->name, buf, (int)buf->size,
-			buf_refcount, buf->pid, "");
-
-		for(i = 0; i < buf->ref_cnt && i < MAX_CLIENTS_NUM; i++)
-			seq_printf(s, "%u, ", buf->client_pids[i]);
-
-		seq_puts(s, "\n");
-	}
-	mutex_unlock(&dev->buffer_lock);
-	up_read(&dev->lock);
-	return 0;
+	return sprintf(buf, "%llu\n", div_u64(size_in_bytes, 1024));
 }
 
-static int ion_debug_allbufs_open(struct inode *inode, struct file *file)
+static ssize_t
+total_pools_kb_show(struct kobject *kobj, struct kobj_attribute *attr,
+		    char *buf)
 {
-	return single_open(file, ion_debug_allbufs_show, inode->i_private);
+	u64 size_in_bytes = ion_page_pool_nr_pages() * PAGE_SIZE;
+
+	return sprintf(buf, "%llu\n", div_u64(size_in_bytes, 1024));
 }
 
-static const struct file_operations debug_allbufs_fops = {
-	.open = ion_debug_allbufs_open,
-	.read = seq_read,
-	.llseek = seq_lseek,
-	.release = single_release,
+static struct kobj_attribute total_heaps_kb_attr =
+	__ATTR_RO(total_heaps_kb);
+
+static struct kobj_attribute total_pools_kb_attr =
+	__ATTR_RO(total_pools_kb);
+
+static struct attribute *ion_device_attrs[] = {
+	&total_heaps_kb_attr.attr,
+	&total_pools_kb_attr.attr,
+	NULL,
 };
 
+ATTRIBUTE_GROUPS(ion_device);
+
+static int ion_init_sysfs(void)
+{
+	struct kobject *ion_kobj;
+	int ret;
+
+	ion_kobj = kobject_create_and_add("ion", kernel_kobj);
+	if (!ion_kobj)
+		return -ENOMEM;
+
+	ret = sysfs_create_groups(ion_kobj, ion_device_groups);
+	if (ret) {
+		kobject_put(ion_kobj);
+		return ret;
+	}
+
+	return 0;
+}
 
 struct ion_device *ion_device_create(void)
 {
@@ -1383,8 +1367,13 @@ struct ion_device *ion_device_create(void)
 	ret = misc_register(&idev->dev);
 	if (ret) {
 		pr_err("ion: failed to register misc device.\n");
-		kfree(idev);
-		return ERR_PTR(ret);
+		goto err_reg;
+	}
+
+	ret = ion_init_sysfs();
+	if (ret) {
+		pr_err("ion: failed to add sysfs attributes.\n");
+		goto err_sysfs;
 	}
 
 	idev->debug_root = debugfs_create_dir("ion", NULL);
@@ -1400,8 +1389,12 @@ debugfs_done:
 	init_rwsem(&idev->lock);
 	plist_head_init(&idev->heaps);
 	internal_dev = idev;
-	debugfs_create_file("check_all_bufs", 0664, idev->debug_root, idev,
-		&debug_allbufs_fops);
 	return idev;
+
+err_sysfs:
+	misc_deregister(&idev->dev);
+err_reg:
+	kfree(idev);
+	return ERR_PTR(ret);
 }
 EXPORT_SYMBOL(ion_device_create);
