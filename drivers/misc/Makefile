@@ -94,4 +94,5 @@ obj-$(CONFIG_OKL4_LINK_SHBUF)    += okl4-link-shbuf.o
 obj-$(CONFIG_MOTO_UTAGS) += utag/
 obj-$(CONFIG_INPUT_AWINIC_HAPTIC) += awinic/
 obj-$(CONFIG_MMI_SIGPRINT)      += mmi_sigprint.o
+obj-$(CONFIG_SARSENSOR_SX933X) += sx933x/
 obj-$(CONFIG_MMI_SYS_TEMP) += mmi_sys_temp/
