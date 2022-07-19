@@ -151,6 +151,40 @@ REBUILD_KERNEL()
 	PRINT_BUILD_TIME $BUILD_STATE
 }
 
+SELECT_BUILD_CONFIG()
+{
+	echo "************************************";
+	echo "	Select defconfig                  ";
+	echo "************************************";
+	echo " "
+	echo "  1. Android";
+	echo " "
+	echo "  2. Droidian";
+	echo " "
+	read -n 1 -p "Please select: " -s config;
+	echo -e '\n'
+	case ${config} in
+		1)
+		   {
+				DEFCONFIG=vendor/sofia_defconfig
+				PRINT_OUT "Android config selected: $DEFCONFIG"
+				echo -e '\n'
+		   };;
+		2)
+		   {
+			   	DEFCONFIG=vendor/sofia-droidian_defconfig
+				PRINT_OUT "Droidian config selected: $DEFCONFIG"
+				echo -e '\n'
+		   };;
+		*)
+		   {
+			PRINT_OUT "Invalid option. Exiting..."
+			sleep 2
+			exit 1
+		   };;
+	esac
+}
+
 SELECT_BUILD_TYPE()
 {
 	echo "************************************";
@@ -229,6 +263,8 @@ SELECT_BUILD_TYPE()
 
 #Start script
 EXPORT_VARS
+
+SELECT_BUILD_CONFIG
 
 ADD_VERSION
 
