@@ -45,12 +45,10 @@ static int cam_icp_context_dump_active_request(void *data, unsigned long iova,
 		return -EINVAL;
 	}
 
-	mutex_lock(&ctx->ctx_mutex);
-
-	if (ctx->state < CAM_CTX_ACQUIRED || ctx->state > CAM_CTX_ACTIVATED) {
+	if (ctx->state < CAM_CTX_READY || ctx->state > CAM_CTX_ACTIVATED) {
 		CAM_ERR(CAM_ICP, "Invalid state icp ctx %d state %d",
 			ctx->ctx_id, ctx->state);
-		goto end;
+		return -EINVAL;
 	}
 
 	CAM_INFO(CAM_ICP, "iommu fault for icp ctx %d state %d",
@@ -71,8 +69,6 @@ static int cam_icp_context_dump_active_request(void *data, unsigned long iova,
 				req->request_id, rc);
 	}
 
-end:
-	mutex_unlock(&ctx->ctx_mutex);
 	return rc;
 }
 
@@ -281,7 +277,7 @@ int cam_icp_context_init(struct cam_icp_context *ctx,
 	}
 
 	rc = cam_context_init(ctx->base, icp_dev_name, CAM_ICP, ctx_id,
-		NULL, hw_intf, ctx->req_base, CAM_CTX_REQ_MAX);
+		NULL, hw_intf, ctx->req_base, CAM_ICP_CTX_REQ_MAX);
 	if (rc) {
 		CAM_ERR(CAM_ICP, "Camera Context Base init failed");
 		goto err;
