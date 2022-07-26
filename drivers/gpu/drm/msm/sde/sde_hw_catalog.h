@@ -56,6 +56,7 @@
 #define SDE_HW_VER_520	SDE_HW_VER(5, 2, 0) /* sdmmagpie v1.0 */
 #define SDE_HW_VER_530	SDE_HW_VER(5, 3, 0) /* sm6150 v1.0 */
 #define SDE_HW_VER_540	SDE_HW_VER(5, 4, 0) /* sdmtrinket v1.0 */
+#define SDE_HW_VER_620	SDE_HW_VER(6, 2, 0) /* atoll*/
 
 #define IS_MSM8996_TARGET(rev) IS_SDE_MAJOR_MINOR_SAME((rev), SDE_HW_VER_170)
 #define IS_MSM8998_TARGET(rev) IS_SDE_MAJOR_MINOR_SAME((rev), SDE_HW_VER_300)
@@ -66,6 +67,7 @@
 #define IS_SDMMAGPIE_TARGET(rev) IS_SDE_MAJOR_MINOR_SAME((rev), SDE_HW_VER_520)
 #define IS_SM6150_TARGET(rev) IS_SDE_MAJOR_MINOR_SAME((rev), SDE_HW_VER_530)
 #define IS_SDMTRINKET_TARGET(rev) IS_SDE_MAJOR_MINOR_SAME((rev), SDE_HW_VER_540)
+#define IS_ATOLL_TARGET(rev) IS_SDE_MAJOR_MINOR_SAME((rev), SDE_HW_VER_620)
 
 #define SDE_HW_BLK_NAME_LEN	16
 
@@ -81,6 +83,7 @@
 
 #define MAX_XIN_COUNT 16
 #define SSPP_SUBBLK_COUNT_MAX 2
+#define LIMIT_SUBBLK_COUNT_MAX 10
 
 #define SDE_CTL_CFG_VERSION_1_0_0       0x100
 #define MAX_INTF_PER_CTL_V1                 2
@@ -1087,12 +1090,49 @@ struct sde_perf_cfg {
 };
 
 /**
+ * struct limit_vector_cfg - information on the usecase for each limit
+ * @usecase: usecase for each limit
+ * @value: id corresponding to each usecase
+ */
+struct limit_vector_cfg {
+	const char *usecase;
+	u32 value;
+};
+
+/**
+ * struct limit_value_cfg - information on the value of usecase
+ * @use_concur: usecase for each limit
+ * @value: value corresponding to usecase for each limit
+ */
+struct limit_value_cfg {
+	u32 use_concur;
+	u32 value;
+};
+
+/**
+ * struct sde_limit_cfg - information om different mdp limits
+ * @name: name of the limit property
+ * @lmt_vec_cnt: number of vector values for each limit
+ * @lmt_case_cnt: number of usecases for each limit
+ * @vector_cfg: pointer to the vector entries containing info on usecase
+ * @value_cfg: pointer to the value of each vector entry
+ */
+struct sde_limit_cfg {
+	const char *name;
+	u32 lmt_vec_cnt;
+	u32 lmt_case_cnt;
+	struct limit_vector_cfg *vector_cfg;
+	struct limit_value_cfg *value_cfg;
+};
+
+/**
  * struct sde_mdss_cfg - information of MDSS HW
  * This is the main catalog data structure representing
  * this HW version. Contains number of instances,
  * register offsets, capabilities of the all MDSS HW sub-blocks.
  *
  * @max_sspp_linewidth max source pipe line width support.
+ * @vig_sspp_linewidth max vig source pipe line width support.
  * @max_mixer_width    max layer mixer line width support.
  * @max_mixer_blendstages max layer mixer blend stages or
  *                       supported z order
@@ -1147,6 +1187,7 @@ struct sde_mdss_cfg {
 	u32 hwversion;
 
 	u32 max_sspp_linewidth;
+	u32 vig_sspp_linewidth;
 	u32 max_mixer_width;
 	u32 max_mixer_blendstages;
 	u32 max_wb_linewidth;
@@ -1182,6 +1223,7 @@ struct sde_mdss_cfg {
 	bool has_line_insertion;
 	bool has_qos_fl_nocalc;
 	bool has_decimation;
+	bool has_base_layer;
 
 	bool sui_misr_supported;
 	u32 sui_block_xin_mask;
@@ -1248,6 +1290,8 @@ struct sde_mdss_cfg {
 	u32 qdss_count;
 	struct sde_qdss_cfg qdss[MAX_BLOCKS];
 
+	u32 limit_count;
+	struct sde_limit_cfg limit_cfg[LIMIT_SUBBLK_COUNT_MAX];
 	/* Add additional block data structures here */
 
 	struct sde_perf_cfg perf;
