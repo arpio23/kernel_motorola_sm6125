@@ -1503,6 +1503,7 @@ CONFIG_QPNP_MISC=y
 # FingerprintCard fingerprint driver
 #
 # CONFIG_FPR_FPC is not set
+CONFIG_MOTO_UTAGS=y
 CONFIG_MMI_SIGPRINT=y
 
 #
