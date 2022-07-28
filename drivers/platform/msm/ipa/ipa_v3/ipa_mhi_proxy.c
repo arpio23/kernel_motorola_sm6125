@@ -625,7 +625,7 @@ struct ipa_mhi_clk_vote_resp_msg_v01
 	if (!vote && imp_ctx->state == IMP_INVALID) {
 		IMP_DBG("Unvote in Invalid state, no op for clock unvote\n");
 		mutex_unlock(&imp_ctx->mutex);
-		return resp;
+		return 0;
 	}
 
 	if (imp_ctx->state != IMP_STARTED) {
@@ -648,8 +648,7 @@ struct ipa_mhi_clk_vote_resp_msg_v01
 	 * executed from mhi context.
 	 */
 	if (vote) {
-		ret = mhi_device_get_sync(imp_ctx->md.mhi_dev,
-			MHI_VOTE_BUS | MHI_VOTE_DEVICE);
+		ret = mhi_device_get_sync(imp_ctx->md.mhi_dev, MHI_VOTE_BUS);
 		if (ret) {
 			IMP_ERR("mhi_sync_get failed %d\n", ret);
 			resp->resp.result = IPA_QMI_RESULT_FAILURE_V01;
@@ -659,8 +658,7 @@ struct ipa_mhi_clk_vote_resp_msg_v01
 			return resp;
 		}
 	} else {
-		mhi_device_put(imp_ctx->md.mhi_dev,
-			MHI_VOTE_BUS | MHI_VOTE_DEVICE);
+		mhi_device_put(imp_ctx->md.mhi_dev, MHI_VOTE_BUS);
 	}
 
 	mutex_lock(&imp_ctx->mutex);
