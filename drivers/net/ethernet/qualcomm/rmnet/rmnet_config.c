@@ -87,14 +87,14 @@ static int rmnet_unregister_real_device(struct net_device *real_dev,
 	if (port->nr_rmnet_devs)
 		return -EINVAL;
 
-	netdev_rx_handler_unregister(real_dev);
-
 	rmnet_map_cmd_exit(port);
 	rmnet_map_tx_aggregate_exit(port);
 
 	rmnet_descriptor_deinit(port);
 
 	kfree(port);
+
+	netdev_rx_handler_unregister(real_dev);
 
 	/* release reference on real_dev */
 	dev_put(real_dev);
@@ -263,9 +263,9 @@ static void rmnet_dellink(struct net_device *dev, struct list_head *head)
 	if (!port->nr_rmnet_devs)
 		qmi_rmnet_qmi_exit(port->qmi_info, port);
 
-	unregister_netdevice(dev);
-
 	rmnet_unregister_real_device(real_dev, port);
+
+	unregister_netdevice_queue(dev, head);
 }
 
 static void rmnet_force_unassociate_device(struct net_device *dev)
@@ -295,9 +295,7 @@ static void rmnet_force_unassociate_device(struct net_device *dev)
 		synchronize_rcu();
 		kfree(ep);
 	}
-	/* Unregistering devices in context before freeing port.
-	 * If this API becomes non-context their order should switch.
-	 */
+
 	unregister_netdevice_many(&list);
 
 	rmnet_unregister_real_device(real_dev, port);
@@ -399,13 +397,14 @@ static int rmnet_changelink(struct net_device *dev, struct nlattr *tb[],
 	}
 
 	if (data[IFLA_RMNET_UL_AGG_PARAMS]) {
-		struct rmnet_egress_agg_params *agg_params;
+		void *agg_params;
+		unsigned long irq_flags;
 
 		agg_params = nla_data(data[IFLA_RMNET_UL_AGG_PARAMS]);
-		rmnet_map_update_ul_agg_config(port, agg_params->agg_size,
-					       agg_params->agg_count,
-					       agg_params->agg_features,
-					       agg_params->agg_time);
+		spin_lock_irqsave(&port->agg_lock, irq_flags);
+		memcpy(&port->egress_agg_params, agg_params,
+		       sizeof(port->egress_agg_params));
+		spin_unlock_irqrestore(&port->agg_lock, irq_flags);
 	}
 
 	return 0;
@@ -705,16 +704,6 @@ int rmnet_get_powersave_notif(void *port)
 	return ((struct rmnet_port *)port)->data_format & RMNET_FORMAT_PS_NOTIF;
 }
 EXPORT_SYMBOL(rmnet_get_powersave_notif);
-
-struct net_device *rmnet_get_real_dev(void *port)
-{
-	if (port)
-		return ((struct rmnet_port *)port)->dev;
-
-	return NULL;
-}
-EXPORT_SYMBOL(rmnet_get_real_dev);
-
 #endif
 
 /* Startup/Shutdown */
