@@ -512,7 +512,8 @@ static struct clk_rcg2 gcc_pcie_0_aux_clk_src = {
 		.vdd_class = &vdd_cx,
 		.num_rate_max = VDD_NUM,
 		.rate_max = (unsigned long[VDD_NUM]) {
-			[VDD_MIN] = 19200000},
+			[VDD_MIN] = 9600000,
+			[VDD_LOW] = 19200000},
 	},
 };
 
@@ -531,7 +532,8 @@ static struct clk_rcg2 gcc_pcie_1_aux_clk_src = {
 		.vdd_class = &vdd_cx,
 		.num_rate_max = VDD_NUM,
 		.rate_max = (unsigned long[VDD_NUM]) {
-			[VDD_MIN] = 19200000},
+			[VDD_MIN] = 9600000,
+			[VDD_LOW] = 19200000},
 	},
 };
 
