@@ -45,7 +45,6 @@
 #define SENSORS_INST_BASE	192
 #define CDSP_INST_BASE		256
 #define WDSP_INST_BASE		320
-#define NPU_INST_BASE		384
 
 #define INST_ID_CNTL		0
 #define INST_ID_CMD		1
@@ -90,11 +89,6 @@ struct diag_socket_info socket_data[NUM_PERIPHERALS] = {
 		.peripheral = PERIPHERAL_CDSP,
 		.type = TYPE_DATA,
 		.name = "CDSP_DATA"
-	},
-	{
-		.peripheral = PERIPHERAL_NPU,
-		.type = TYPE_DATA,
-		.name = "NPU_DATA"
 	}
 };
 
@@ -128,11 +122,6 @@ struct diag_socket_info socket_cntl[NUM_PERIPHERALS] = {
 		.peripheral = PERIPHERAL_CDSP,
 		.type = TYPE_CNTL,
 		.name = "CDSP_CNTL"
-	},
-	{
-		.peripheral = PERIPHERAL_NPU,
-		.type = TYPE_CNTL,
-		.name = "NPU_CNTL"
 	}
 };
 
@@ -166,11 +155,6 @@ struct diag_socket_info socket_dci[NUM_PERIPHERALS] = {
 		.peripheral = PERIPHERAL_CDSP,
 		.type = TYPE_DCI,
 		.name = "CDSP_DCI"
-	},
-	{
-		.peripheral = PERIPHERAL_NPU,
-		.type = TYPE_DCI,
-		.name = "NPU_DCI"
 	}
 };
 
@@ -204,11 +188,6 @@ struct diag_socket_info socket_cmd[NUM_PERIPHERALS] = {
 		.peripheral = PERIPHERAL_CDSP,
 		.type = TYPE_CMD,
 		.name = "CDSP_CMD"
-	},
-	{
-		.peripheral = PERIPHERAL_NPU,
-		.type = TYPE_CMD,
-		.name = "NPU_CMD"
 	}
 };
 
@@ -243,11 +222,6 @@ struct diag_socket_info socket_dci_cmd[NUM_PERIPHERALS] = {
 		.type = TYPE_DCI_CMD,
 		.name = "CDSP_DCI_CMD"
 	},
-	{
-		.peripheral = PERIPHERAL_NPU,
-		.type = TYPE_DCI_CMD,
-		.name = "NPU_DCI_CMD"
-	}
 };
 
 struct restart_notifier_block {
@@ -329,7 +303,6 @@ static struct restart_notifier_block restart_notifiers[] = {
 	{SOCKET_WCNSS, "wcnss", .nb.notifier_call = restart_notifier_cb},
 	{SOCKET_SLPI, "slpi", .nb.notifier_call = restart_notifier_cb},
 	{SOCKET_CDSP, "cdsp", .nb.notifier_call = restart_notifier_cb},
-	{SOCKET_NPU, "npu", .nb.notifier_call = restart_notifier_cb},
 };
 
 void diag_socket_invalidate(void *ctxt, struct diagfwd_info *fwd_ctxt)
@@ -1014,9 +987,6 @@ static void __diag_socket_init(struct diag_socket_info *info)
 		break;
 	case PERIPHERAL_CDSP:
 		ins_base = CDSP_INST_BASE;
-		break;
-	case PERIPHERAL_NPU:
-		ins_base = NPU_INST_BASE;
 		break;
 	}
 
