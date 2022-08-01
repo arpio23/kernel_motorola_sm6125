@@ -73,8 +73,6 @@ static void print_boot_stats(void)
 			readl_relaxed(&boot_stats->bootloader_start));
 	pr_info("KPI: Bootloader end count = %u\n",
 			readl_relaxed(&boot_stats->bootloader_end));
-	pr_info("KPI: Bootloader display count = %u\n",
-			readl_relaxed(&boot_stats->bootloader_display));
 	pr_info("KPI: Bootloader load kernel count = %u\n",
 			readl_relaxed(&boot_stats->load_kernel_done) -
 			readl_relaxed(&boot_stats->load_kernel_start));
