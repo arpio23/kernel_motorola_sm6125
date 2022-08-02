@@ -104,7 +104,8 @@ CREATE_ZIP(){
 EXPORT_VARS()
 {
 	export ARCH=arm64
-	export CROSS_COMPILE=aarch64-linux-gnu-
+	export PATH="$HOME/toolchains/proton-clang/bin:$PATH"
+    export CROSS_COMPILE=aarch64-linux-gnu-
 	export KBUILD_BUILD_USER=arpio
 	export KBUILD_BUILD_HOST=workstation
 }

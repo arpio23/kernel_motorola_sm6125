@@ -903,12 +903,6 @@ static int spi_geni_prepare_transfer_hardware(struct spi_master *spi)
 			"%s: Error %d pinctrl_select_state\n", __func__, ret);
 	}
 
-	if (mas->dev->power.disable_depth > 0) {
-		dev_err(mas->dev, "%s:disable_depth not zero %d\n",
-					__func__, mas->dev->power.disable_depth);
-		pm_runtime_enable(mas->dev);
-	}
-
 	ret = pm_runtime_get_sync(mas->dev);
 	if (ret < 0) {
 		dev_err(mas->dev, "%s:Error enabling SE resources %d\n",
@@ -1956,7 +1950,7 @@ static int spi_geni_resume(struct device *dev)
 static int spi_geni_suspend(struct device *dev)
 {
 	int ret = 0;
-#if 0
+
 	if (!pm_runtime_status_suspended(dev)) {
 		struct spi_master *spi = get_spi_master(dev);
 		struct spi_geni_master *geni_mas = spi_master_get_devdata(spi);
@@ -1977,10 +1971,6 @@ static int spi_geni_suspend(struct device *dev)
 			ret = -EBUSY;
 		}
 	}
-#else
-	if (!pm_runtime_status_suspended(dev))
-		ret = -EBUSY;
-#endif
 	return ret;
 }
 #else

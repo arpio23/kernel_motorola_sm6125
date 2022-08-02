@@ -46,10 +46,6 @@
 #define desc_to_data(d) container_of(d, struct pil_tz_data, desc)
 #define subsys_to_data(d) container_of(d, struct pil_tz_data, subsys_desc)
 
-static char pil_ssr_reason[MAX_SSR_REASON_LEN];
-static char *ssr_reason = pil_ssr_reason;
-module_param(ssr_reason, charp, S_IRUGO);
-
 /**
  * struct reg_info - regulator info
  * @reg: regulator handle
@@ -853,7 +849,7 @@ static struct pil_reset_ops pil_ops_trusted = {
 static void log_failure_reason(const struct pil_tz_data *d)
 {
 	size_t size;
-	char *smem_reason;
+	char *smem_reason, reason[MAX_SSR_REASON_LEN];
 	const char *name = d->subsys_desc.name;
 
 	if (d->smem_id == -1)
@@ -870,8 +866,8 @@ static void log_failure_reason(const struct pil_tz_data *d)
 		return;
 	}
 
-	strlcpy(pil_ssr_reason, smem_reason, min((size_t)size, (size_t)sizeof(pil_ssr_reason)));
-	pr_err("%s subsystem failure reason: %s.\n", name, pil_ssr_reason);
+	strlcpy(reason, smem_reason, min(size, (size_t)MAX_SSR_REASON_LEN));
+	pr_err("%s subsystem failure reason: %s.\n", name, reason);
 }
 
 static int subsys_shutdown(const struct subsys_desc *subsys, bool force_stop)

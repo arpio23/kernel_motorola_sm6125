@@ -902,7 +902,7 @@ void pm_print_active_wakeup_sources(void)
 	srcuidx = srcu_read_lock(&wakeup_srcu);
 	list_for_each_entry_rcu(ws, &wakeup_sources, entry) {
 		if (ws->active) {
-			pr_info("active wakeup source: %s\n", ws->name);
+			pr_debug("active wakeup source: %s\n", ws->name);
 			active = 1;
 		} else if (!active &&
 			   (!last_activity_ws ||
@@ -913,7 +913,7 @@ void pm_print_active_wakeup_sources(void)
 	}
 
 	if (!active && last_activity_ws)
-		pr_info("last active wakeup source: %s\n",
+		pr_debug("last active wakeup source: %s\n",
 			last_activity_ws->name);
 	srcu_read_unlock(&wakeup_srcu, srcuidx);
 }
@@ -1156,33 +1156,6 @@ static int wakeup_sources_stats_show(struct seq_file *m, void *unused)
 	print_wakeup_source_stats(m, &deleted_ws);
 
 	return 0;
-}
-
-int wakelock_dump_active_info(char *buf, int size)
-{
-	struct wakeup_source *ws;
-	unsigned long flags;
-	char *p = buf;
-
-	rcu_read_lock();
-	list_for_each_entry_rcu(ws, &wakeup_sources, entry) {
-		spin_lock_irqsave(&ws->lock, flags);
-		if (ws->active) {
-			if (time_after(ws->timer_expires, jiffies)) {
-				long timeout = ws->timer_expires - jiffies;
-
-				p += snprintf(p, size - (p - buf),
-				"   (active)[%s], time left %d (msecs)\n",
-				ws->name, jiffies_to_msecs(timeout));
-			} else /* active */
-				p += snprintf(p, size - (p - buf),
-				"   (active)[%s]\n", ws->name);
-		}
-		spin_unlock_irqrestore(&ws->lock, flags);
-	}
-	rcu_read_unlock();
-
-	return p - buf;
 }
 
 static int wakeup_sources_stats_open(struct inode *inode, struct file *file)

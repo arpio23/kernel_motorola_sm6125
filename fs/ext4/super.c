@@ -2273,12 +2273,12 @@ static int ext4_setup_super(struct super_block *sb, struct ext4_super_block *es,
 			    int read_only)
 {
 	struct ext4_sb_info *sbi = EXT4_SB(sb);
-	int err = 0;
+	int res = 0;
 
 	if (le32_to_cpu(es->s_rev_level) > EXT4_MAX_SUPP_REV) {
 		ext4_msg(sb, KERN_ERR, "revision level too high, "
 			 "forcing read-only mode");
-		err = -EROFS;
+		res = MS_RDONLY;
 	}
 	if (read_only)
 		goto done;
@@ -2311,7 +2311,7 @@ static int ext4_setup_super(struct super_block *sb, struct ext4_super_block *es,
 	if (sbi->s_journal)
 		ext4_set_feature_journal_needs_recovery(sb);
 
-	err = ext4_commit_super(sb, 1);
+	ext4_commit_super(sb, 1);
 done:
 	if (test_opt(sb, DEBUG))
 		printk(KERN_INFO "[EXT4 FS bs=%lu, gc=%u, "
@@ -2323,7 +2323,7 @@ done:
 			sbi->s_mount_opt, sbi->s_mount_opt2);
 
 	cleancache_init_fs(sb);
-	return err;
+	return res;
 }
 
 int ext4_alloc_flex_bg_array(struct super_block *sb, ext4_group_t ngroup)
@@ -4531,13 +4531,9 @@ no_journal:
 		ret = -ENOMEM;
 		goto failed_mount4;
 	}
-       ret = ext4_setup_super(sb, es, sb_rdonly(sb));
-       if (ret == -EROFS) {
-               sb->s_flags |= SB_RDONLY;
-               ret = 0;
-       } else if (ret)
-               goto failed_mount4a;
 
+	if (ext4_setup_super(sb, es, sb_rdonly(sb)))
+		sb->s_flags |= MS_RDONLY;
 
 	ext4_set_resv_clusters(sb);
 
@@ -5072,7 +5068,11 @@ static int ext4_commit_super(struct super_block *sb, int sync)
 		unlock_buffer(sbh);
 		error = __sync_dirty_buffer(sbh,
 			REQ_SYNC | (test_opt(sb, BARRIER) ? REQ_FUA : 0));
-		if (buffer_write_io_error(sbh)) {
+		if (error)
+			return error;
+
+		error = buffer_write_io_error(sbh);
+		if (error) {
 			ext4_msg(sb, KERN_ERR, "I/O error while writing "
 			       "superblock");
 			clear_buffer_write_io_error(sbh);
@@ -5496,13 +5496,8 @@ static int ext4_remount(struct super_block *sb, int *flags, char *data)
 			if (sbi->s_journal)
 				ext4_clear_journal_err(sb, es);
 			sbi->s_mount_state = le16_to_cpu(es->s_state);
-
-                        err = ext4_setup_super(sb, es, 0);
-                        if (err)
-                                goto restore_opts;
-
-                        sb->s_flags &= ~SB_RDONLY;
-
+			if (!ext4_setup_super(sb, es, 0))
+				sb->s_flags &= ~MS_RDONLY;
 			if (ext4_has_feature_mmp(sb))
 				if (ext4_multi_mount_protect(sb,
 						le64_to_cpu(es->s_mmp_block))) {
@@ -5526,11 +5521,8 @@ static int ext4_remount(struct super_block *sb, int *flags, char *data)
 	}
 
 	ext4_setup_system_zone(sb);
-	if (sbi->s_journal == NULL && !(old_sb_flags & MS_RDONLY)){
-	        err = ext4_commit_super(sb, 1);
-                if (err)
-                       goto restore_opts;
-       }
+	if (sbi->s_journal == NULL && !(old_sb_flags & MS_RDONLY))
+		ext4_commit_super(sb, 1);
 
 #ifdef CONFIG_QUOTA
 	/* Release old quota file names */

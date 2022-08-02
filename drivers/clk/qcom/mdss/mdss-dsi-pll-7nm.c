@@ -858,6 +858,7 @@ static void dsi_pll_detect_phy_mode(struct dsi_pll_7nm *pll,
 			   struct mdss_pll_resources *rsc)
 {
 	u32 reg_val = MDSS_PLL_REG_R(rsc->phy_base, PHY_CMN_GLBL_CTRL);
+
 	pll->cphy_enabled = (reg_val & BIT(6)) ? true : false;
 }
 
