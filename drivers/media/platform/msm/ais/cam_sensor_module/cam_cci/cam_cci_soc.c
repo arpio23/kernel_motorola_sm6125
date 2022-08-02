@@ -54,14 +54,6 @@ int cam_cci_init(struct v4l2_subdev *sd,
 		goto platform_enable_failed;
 	}
 
-	/* Enable Regulators and IRQ*/
-	rc = cam_soc_util_enable_platform_resource(soc_info, true,
-		CAM_LOWSVS_VOTE, true);
-	if (rc < 0) {
-		CAM_ERR(CAM_CCI, "request platform resources failed");
-		goto platform_enable_failed;
-	}
-
 	ahb_vote.type = CAM_VOTE_ABSOLUTE;
 	ahb_vote.vote.level = CAM_SVS_VOTE;
 	axi_vote.compressed_bw = CAM_CPAS_DEFAULT_AXI_BW;

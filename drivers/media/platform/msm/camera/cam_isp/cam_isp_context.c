@@ -885,14 +885,6 @@ static int __cam_isp_ctx_reg_upd_in_epoch_state(
 				ctx_isp->irq_timestamps));
 	}
 
-		if (req)
-			trace_cam_isp_irq_delay_detect("IRQ delay at reg_upd",
-				ctx, req->request_id,
-				ctx_isp->substate_activated,
-				(rup_event_data->irq_mono_boot_time -
-				ctx_isp->irq_timestamps));
-	}
-
 	ctx_isp->irq_timestamps = rup_event_data->irq_mono_boot_time;
 	return 0;
 }
