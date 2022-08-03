@@ -234,38 +234,6 @@ struct etr_buf {
 	void				*private;
 };
 
-enum etr_mode {
-	ETR_MODE_FLAT,		/* Uses contiguous flat buffer */
-	ETR_MODE_ETR_SG,	/* Uses in-built TMC ETR SG mechanism */
-	ETR_MODE_CATU,		/* Use SG mechanism in CATU */
-};
-
-struct etr_buf_operations;
-
-/**
- * struct etr_buf - Details of the buffer used by ETR
- * refcount	; Number of sources currently using this etr_buf.
- * @mode	: Mode of the ETR buffer, contiguous, Scatter Gather etc.
- * @full	: Trace data overflow
- * @size	: Size of the buffer.
- * @hwaddr	: Address to be programmed in the TMC:DBA{LO,HI}
- * @offset	: Offset of the trace data in the buffer for consumption.
- * @len		: Available trace data @buf (may round up to the beginning).
- * @ops		: ETR buffer operations for the mode.
- * @private	: Backend specific information for the buf
- */
-struct etr_buf {
-	refcount_t			refcount;
-	enum etr_mode			mode;
-	bool				full;
-	ssize_t				size;
-	dma_addr_t			hwaddr;
-	unsigned long			offset;
-	s64				len;
-	const struct etr_buf_operations	*ops;
-	void				*private;
-};
-
 /**
  * struct tmc_drvdata - specifics associated to an TMC component
  * @base:	memory mapped base address for this component.
