@@ -1444,6 +1444,31 @@ int gsi_write_channel_scratch2_reg(unsigned long chan_hdl,
 		union gsi_wdi2_channel_scratch2_reg val);
 
 /**
+ * gsi_write_wdi3_channel_scratch2_reg - Peripheral should call this function
+ * to write to the WDI3 scratch 3 register area of the channel context
+ *
+ * @chan_hdl:  Client handle previously obtained from
+ *             gsi_alloc_channel
+ * @val:       Read value
+ *
+ * @Return gsi_status
+ */
+int gsi_write_wdi3_channel_scratch2_reg(unsigned long chan_hdl,
+		union __packed gsi_wdi3_channel_scratch2_reg val);
+/**
+ * gsi_write_channel_scratch2_reg - Peripheral should call this function to
+ * write to the scratch2 reg area of the channel context
+ *
+ * @chan_hdl:  Client handle previously obtained from
+ *             gsi_alloc_channel
+ * @val:       Value to write
+ *
+ * @Return gsi_status
+ */
+int gsi_write_channel_scratch2_reg(unsigned long chan_hdl,
+		union __packed gsi_wdi2_channel_scratch2_reg val);
+
+/**
  * gsi_read_channel_scratch - Peripheral should call this function to
  * read to the scratch area of the channel context
  *
@@ -1468,6 +1493,19 @@ int gsi_read_channel_scratch(unsigned long chan_hdl,
  */
 int gsi_read_wdi3_channel_scratch2_reg(unsigned long chan_hdl,
 		union gsi_wdi3_channel_scratch2_reg *val);
+
+/**
+ * gsi_read_wdi3_channel_scratch2_reg - Peripheral should call this function to
+ * read to the WDI3 scratch 2 register area of the channel context
+ *
+ * @chan_hdl:  Client handle previously obtained from
+ *             gsi_alloc_channel
+ * @val:       Read value
+ *
+ * @Return gsi_status
+ */
+int gsi_read_wdi3_channel_scratch2_reg(unsigned long chan_hdl,
+		union __packed gsi_wdi3_channel_scratch2_reg *val);
 
 /**
  * gsi_update_mhi_channel_scratch - MHI Peripheral should call this
@@ -1940,6 +1978,12 @@ static inline int gsi_write_channel_scratch3_reg(unsigned long chan_hdl,
 
 static inline int gsi_write_channel_scratch2_reg(unsigned long chan_hdl,
 		union gsi_wdi2_channel_scratch2_reg val)
+{
+	return -GSI_STATUS_UNSUPPORTED_OP;
+}
+
+static inline int gsi_write_channel_scratch2_reg(unsigned long chan_hdl,
+		union __packed gsi_wdi2_channel_scratch2_reg val)
 {
 	return -GSI_STATUS_UNSUPPORTED_OP;
 }

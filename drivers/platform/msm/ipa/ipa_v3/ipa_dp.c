@@ -1264,10 +1264,12 @@ fail_repl:
 	ep->sys->repl_hdlr = ipa3_replenish_rx_cache;
 	ep->sys->repl->capacity = 0;
 	kfree(ep->sys->repl);
+	ep->sys->repl = NULL;
 fail_page_recycle_repl:
 	if (ep->sys->page_recycle_repl) {
 		ep->sys->page_recycle_repl->capacity = 0;
 		kfree(ep->sys->page_recycle_repl);
+		ep->sys->page_recycle_repl = NULL;
 	}
 fail_gen2:
 	if (ipa3_ctx->use_ipa_pm)
@@ -2654,6 +2656,26 @@ static void ipa3_cleanup_rx(struct ipa3_sys_context *sys)
 
 		kfree(sys->repl->cache);
 		kfree(sys->repl);
+		sys->repl = NULL;
+	}
+	if (sys->page_recycle_repl) {
+		for (i = 0; i < sys->page_recycle_repl->capacity; i++) {
+			rx_pkt = sys->page_recycle_repl->cache[i];
+			if (rx_pkt) {
+				dma_unmap_page(ipa3_ctx->pdev,
+					rx_pkt->page_data.dma_addr,
+					rx_pkt->len,
+					DMA_FROM_DEVICE);
+				__free_pages(rx_pkt->page_data.page,
+					IPA_WAN_PAGE_ORDER);
+				kmem_cache_free(
+					ipa3_ctx->rx_pkt_wrapper_cache,
+					rx_pkt);
+			}
+		}
+		kfree(sys->page_recycle_repl->cache);
+		kfree(sys->page_recycle_repl);
+		sys->page_recycle_repl = NULL;
 	}
 	if (sys->page_recycle_repl) {
 		for (i = 0; i < sys->page_recycle_repl->capacity; i++) {

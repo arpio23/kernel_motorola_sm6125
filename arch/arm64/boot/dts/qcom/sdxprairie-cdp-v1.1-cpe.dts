@@ -12,6 +12,22 @@
 
 /dts-v1/;
 
+<<<<<<<< HEAD:arch/arm64/boot/dts/qcom/trinket-sofia-base.dts
+#include "trinket-moto-base.dtsi"
+
+&firmware {
+	/delete-node/ android;
+};
+
+&pmi632_rgb {
+	/delete-node/ blue;
+	/delete-node/ green;
+};
+
+&tlmm {
+	/delete-node/ nfc;
+};
+========
 #include "sdxprairie-cdp-v1.1-cpe.dtsi"
 
 / {
@@ -22,3 +38,4 @@
 };
 
 
+>>>>>>>> local/kernel.lnx.4.14.r27-rel:arch/arm64/boot/dts/qcom/sdxprairie-cdp-v1.1-cpe.dts

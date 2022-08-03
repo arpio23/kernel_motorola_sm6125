@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2013, Sony Mobile Communications AB.
- * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -60,22 +60,6 @@ struct msm_tile {
 	u32 dir_con_regs[8];
 };
 #endif
-
-/**
- * extract GPIO pin from bit-field used for gpio_tlmm_config
- */
-#define GPIO_PIN(gpio_cfg)    (((gpio_cfg) >>  4) & 0x3ff)
-#define GPIO_FUNC(gpio_cfg)   (((gpio_cfg) >>  0) & 0xf)
-#define GPIO_DIR(gpio_cfg)    (((gpio_cfg) >> 14) & 0x1)
-#define GPIO_PULL(gpio_cfg)   (((gpio_cfg) >> 15) & 0x3)
-#define GPIO_DRVSTR(gpio_cfg) (((gpio_cfg) >> 17) & 0xf)
-
-#define GPIO_CFG(gpio, func, dir, pull, drvstr) \
-	((((gpio) & 0x3FF) << 4)        |	  \
-	 ((func) & 0xf)                  |	  \
-	 (((dir) & 0x1) << 14)           |	  \
-	 (((pull) & 0x3) << 15)          |	  \
-	 (((drvstr) & 0xF) << 17))
 
 /**
  * struct msm_pinctrl - state for a pinctrl-msm device
@@ -591,100 +575,6 @@ static void msm_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	writel(val, base + g->io_reg);
 
 	raw_spin_unlock_irqrestore(&pctrl->lock, flags);
-}
-
-int tlmm_get_inout(unsigned gpio)
-{
-	const struct msm_pingroup *g;
-	u32 val;
-
-	if (msm_pinctrl_data == NULL)
-		return -EINVAL;
-	if (gpio >= msm_pinctrl_data->chip.ngpio)
-		return -EINVAL;
-
-	g = &msm_pinctrl_data->soc->groups[gpio];
-
-	val = readl_relaxed(msm_pinctrl_data->regs + g->io_reg);
-	return !!(val & BIT(g->in_bit));
-}
-
-int tlmm_set_inout(unsigned gpio, unsigned value)
-{
-	const struct msm_pingroup *g;
-	unsigned long flags;
-	u32 val;
-
-	if (msm_pinctrl_data == NULL)
-		return -EINVAL;
-	if (gpio >= msm_pinctrl_data->chip.ngpio)
-		return -EINVAL;
-
-	g = &msm_pinctrl_data->soc->groups[gpio];
-
-	raw_spin_lock_irqsave(&msm_pinctrl_data->lock, flags);
-
-	val = readl_relaxed(msm_pinctrl_data->regs + g->io_reg);
-	if (value)
-		val |= BIT(g->out_bit);
-	else
-		val &= ~BIT(g->out_bit);
-	writel_relaxed(val, msm_pinctrl_data->regs + g->io_reg);
-
-	raw_spin_unlock_irqrestore(&msm_pinctrl_data->lock, flags);
-	return 0;
-}
-
-int tlmm_get_config(unsigned gpio, unsigned *cfg)
-{
-	const struct msm_pingroup *g;
-	u32 ctl_reg;
-
-	if (msm_pinctrl_data == NULL)
-		return -EINVAL;
-	if (gpio >= msm_pinctrl_data->chip.ngpio)
-		return -EINVAL;
-
-	g = &msm_pinctrl_data->soc->groups[gpio];
-	ctl_reg = readl_relaxed(msm_pinctrl_data->regs + g->ctl_reg);
-	pr_debug("%s(), %d, ctl_reg=%x\n", __func__, __LINE__, ctl_reg);
-
-	*cfg = GPIO_CFG(gpio, (ctl_reg >> g->mux_bit) & 7,
-		!!(ctl_reg & BIT(g->oe_bit)), (ctl_reg >> g->pull_bit) & 3,
-		(ctl_reg >> g->drv_bit) & 7);
-
-	return 0;
-}
-
-int tlmm_set_config(unsigned config)
-{
-	const struct msm_pingroup *g;
-	unsigned long flags;
-	u32 ctl_reg;
-	u32 val;
-	unsigned gpio = GPIO_PIN(config);
-
-	pr_debug("%s(), %d, gpio=%d\n", __func__, __LINE__, gpio);
-	if (msm_pinctrl_data == NULL)
-		return -EINVAL;
-	if (gpio >= msm_pinctrl_data->chip.ngpio)
-		return -EINVAL;
-
-	config = (config & ~0x40000000);
-	g = &msm_pinctrl_data->soc->groups[gpio];
-	ctl_reg = readl_relaxed(msm_pinctrl_data->regs + g->ctl_reg);
-
-	pr_debug("%s(), %d, ctl_reg=%x\n", __func__, __LINE__, ctl_reg);
-
-	raw_spin_lock_irqsave(&msm_pinctrl_data->lock, flags);
-	val = (((GPIO_DIR(config) & 1) << g->oe_bit) |
-		((GPIO_DRVSTR(config) & 7) << g->drv_bit) |
-		((GPIO_FUNC(config) & 7) << g->mux_bit) |
-		((GPIO_PULL(config) & 3) << g->pull_bit));
-	pr_debug("%s(), %d, val=%x\n", __func__, __LINE__, val);
-	writel_relaxed(val, msm_pinctrl_data->regs + g->ctl_reg);
-	raw_spin_unlock_irqrestore(&msm_pinctrl_data->lock, flags);
-	return 0;
 }
 
 #ifdef CONFIG_DEBUG_FS
@@ -2158,6 +2048,35 @@ static struct syscore_ops msm_pinctrl_pm_ops = {
 	.suspend = msm_pinctrl_suspend,
 	.resume = msm_pinctrl_resume,
 };
+
+/*
+ * msm_gpio_mpm_wake_set - API to make interrupt wakeup capable
+ * @gpio:       Gpio number to make interrupt wakeup capable
+ * @enable:     Enable/Disable wakeup capability
+ */
+int msm_gpio_mpm_wake_set(unsigned int gpio, bool enable)
+{
+	const struct msm_pingroup *g;
+	unsigned long flags;
+	u32 val;
+
+	g = &msm_pinctrl_data->soc->groups[gpio];
+	if (g->wake_bit == -1)
+		return -ENOENT;
+
+	raw_spin_lock_irqsave(&msm_pinctrl_data->lock, flags);
+	val = readl_relaxed(msm_pinctrl_data->regs + g->wake_reg);
+	if (enable)
+		val |= BIT(g->wake_bit);
+	else
+		val &= ~BIT(g->wake_bit);
+
+	writel_relaxed(val, msm_pinctrl_data->regs + g->wake_reg);
+	raw_spin_unlock_irqrestore(&msm_pinctrl_data->lock, flags);
+
+	return 0;
+}
+EXPORT_SYMBOL(msm_gpio_mpm_wake_set);
 
 int msm_pinctrl_probe(struct platform_device *pdev,
 		      const struct msm_pinctrl_soc_data *soc_data)
