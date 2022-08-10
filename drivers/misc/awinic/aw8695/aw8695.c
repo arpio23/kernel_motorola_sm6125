@@ -3294,7 +3294,7 @@ static int aw8695_vibrator_init(struct aw8695 *aw8695)
 
 	INIT_WORK(&aw8695->rtp_work, aw8695_rtp_work_routine);
 
-	aw8695->ws = wakeup_source_register("vibrator");
+	aw8695->ws = wakeup_source_register(aw8695->dev, "vibrator");
 	if (!aw8695->ws)
 		return -ENOMEM;
 
