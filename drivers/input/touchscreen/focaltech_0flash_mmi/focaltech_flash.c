@@ -275,8 +275,8 @@ int fts_fw_resume(bool need_reset)
     char fwname[FILE_NAME_LENGTH] = { 0 };
 
     FTS_INFO("fw upgrade resume function");
-    if (!upg || !upg->fw) {
-        FTS_ERROR("upg/fw is null");
+    if (!upg) {
+        FTS_ERROR("upg is null");
         return -EINVAL;
     }
 
@@ -294,6 +294,10 @@ int fts_fw_resume(bool need_reset)
         FTS_ERROR("%s:firmware(%s) request fail,ret=%d\n",
                   __func__, fwname, ret);
         FTS_INFO("download fw from bootimage");
+        if(!upg->fw) {
+            FTS_ERROR("upg/fw is null");
+            return -EINVAL;
+        }
         ret = fts_fw_download(upg->fw, upg->fw_length, need_reset);
     } else {
         FTS_INFO("firmware(%s) request successfully", fwname);
