@@ -34,7 +34,7 @@ jobs:
           apt install -y linux-packaging-snippets git
           debian/rules debian/control
           BRANCH=droidian
-          COMMIT=""
+          COMMIT=$(git rev-parse HEAD)
           COMMENT="${BRANCH}"
           RELENG_HOST_ARCH="arm64"
           ARGS="--commit ${COMMIT} --comment ${COMMENT} --branch ${BRANCH}"
