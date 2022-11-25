@@ -1,4 +1,4 @@
-![example workflow](https://github.com/arpio23/kernel_motorola_sm6125/actions/workflows/work.yml/badge.svg?event=push)
+![example workflow](https://github.com/arpio23/kernel_motorola_sm6125/actions/workflows/work.yml/badge.svg)
 
 Linux kernel
 ============
