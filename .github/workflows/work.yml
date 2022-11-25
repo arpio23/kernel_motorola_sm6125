@@ -49,8 +49,7 @@ jobs:
 
       - name: Build package
         run: |
-          ARGS="--no-lintian -d -sa --no-sign --jobs=$(nproc) --build=any"
-          ARGS="${ARGS} -a${RELENG_HOST_ARCH}"
+          ARGS="--no-lintian -d -sa --no-sign --jobs=$(nproc) --build=any -aarm64"
           eval debuild "${ARGS}"
 
       # Runs a set of commands using the runners shell
