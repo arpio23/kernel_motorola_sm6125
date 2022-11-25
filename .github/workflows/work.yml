@@ -31,6 +31,7 @@ jobs:
 
       - name: Prepare build and create changelog
         run: |
+          apt install -y linux-packaging-snippets git
           debian/rules debian/control
           BRANCH=droidian
           COMMIT=""
