@@ -29,17 +29,6 @@ jobs:
       - name: Update repositories
         run: apt update
 
-      - name: Prepare build and create changelog
-        run: |
-          apt install -y linux-packaging-snippets git
-          debian/rules debian/control
-          BRANCH=droidian
-          COMMIT=$(git rev-parse HEAD)
-          COMMENT="${BRANCH}"
-          RELENG_HOST_ARCH="arm64"
-          ARGS="--commit ${COMMIT} --comment ${COMMENT} --branch ${BRANCH}"
-          releng-build-changelog $ARGS
-
       - name: Install package build dependencies
         run: |
           package_info=$(head -n 1 debian/changelog)
@@ -51,6 +40,7 @@ jobs:
         run: |
           ARGS="--no-lintian -d -sa --no-sign --jobs=$(nproc) --build=any -aarm64"
           eval debuild "${ARGS}"
+          
       - name: Move packages to out directory
         run: |
           mkdir /out
@@ -87,7 +77,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-20.04
-    needs: build
+    needs: prepare
 
     name: Publish linux-image
 
