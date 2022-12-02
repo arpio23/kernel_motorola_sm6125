@@ -1,3 +1,9 @@
+linux-android-motorola-sofia (0.0.1-2) sofia; urgency=medium
+
+  * Add droidian.lvm.prefer option to kernel cmdline
+
+ -- arpio23 <alex@familyrutz.com>  Dec, 1 Nov 2022 21:15:35 -0700
+
 linux-android-motorola-sofia (0.0.1-1) sofia; urgency=medium
 
   [ arpio ]
