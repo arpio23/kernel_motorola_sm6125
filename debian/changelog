@@ -3,6 +3,7 @@ linux-android-motorola-sofia (0.0.1-3) sofia; urgency=medium
   * Disable CONFIG_FB_VIRTUAL, fixes bootsplash not showing on droidian.
   * debian/control: Update dependency to python3
   * debian/control: Remove avbtool
+  * debian/control: Depend on python-is-python3
   * debian/kernel-info.mk: Disable vbmeta build
 
  -- arpio23 <alex@familyrutz.com>  Dec, 16 Nov 2022 22:25:35 -0700
