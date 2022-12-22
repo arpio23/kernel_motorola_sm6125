@@ -54,6 +54,8 @@ u8 fw_file2[] = {
 u8 fw_file3[] = {
 };
 
+char fw_name_bin[FILE_NAME_LENGTH] = { 0 };
+
 struct upgrade_module module_list[] = {
     {FTS_MODULE_ID, FTS_MODULE_NAME, fw_file, sizeof(fw_file)},
     {FTS_MODULE2_ID, FTS_MODULE2_NAME, fw_file2, sizeof(fw_file2)},
@@ -207,7 +209,12 @@ int fts_upgrade_bin(char *fw_name, bool force)
         goto err_bin;
     }
 
-    FTS_INFO("upgrade fw bin success");
+    FTS_INFO("upgrade fw bin success, filename: %s", fw_name);
+    snprintf(fw_name_bin, FILE_NAME_LENGTH, "%s", fw_name);
+    
+    msleep(10);
+    fts_reset_proc(10);
+    fts_tp_state_recovery(upg->ts_data);
 
 err_bin:
     if (fw_file_buf) {
@@ -283,6 +290,11 @@ int fts_fw_resume(bool need_reset)
     if (upg->ts_data->fw_loading) {
         FTS_INFO("fw is loading, not download again");
         return -EINVAL;
+    }
+
+    if (fw_name_bin != NULL){
+        ret = fts_upgrade_bin(fw_name_bin, true);
+        return ret;
     }
 
     snprintf(fwname, FILE_NAME_LENGTH, "%s%s.bin", \
@@ -567,6 +579,11 @@ static void fts_fwupg_work(struct work_struct *work)
         return ;
     }
 
+#if !FTS_AUTO_UPGRADE_EN
+    FTS_INFO("FTS_AUTO_UPGRADE_EN is disabled, not upgrade when power on");
+    return ;
+#endif
+
     /* get fw */
     ret = fts_fwupg_get_fw_file(upg);
     if (ret < 0) {
@@ -574,10 +591,6 @@ static void fts_fwupg_work(struct work_struct *work)
         return ;
     }
 
-#if !FTS_AUTO_UPGRADE_EN
-    FTS_INFO("FTS_AUTO_UPGRADE_EN is disabled, not upgrade when power on");
-    return ;
-#endif
 
     if (upg->ts_data->fw_loading) {
         FTS_INFO("fw is loading, not download again");

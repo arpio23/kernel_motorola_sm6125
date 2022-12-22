@@ -1,3 +1,15 @@
+linux-android-motorola-sofia (0.0.1-4) sofia; urgency=medium
+
+  * Fix touchscreen in unl0kr
+  * focaltech_0flash_mmi:
+      To have touch in unl0kr working we need to load the firmware early in initrd.
+      The request_firmware() call cannot find the firmware at that stage.
+      The workaround is to mount the vendor, find the proper file and call 'echo $fw_name > <touch_path>/fts_force_upgrade' from initrd.
+      Any later calls for firmware upgrade will use the provided filename and download the firmware.
+
+
+ -- arpio23 <alex@familyrutz.com>  Thu, 22 Dec 2022 15:29:50 -0700
+
 linux-android-motorola-sofia (0.0.1-3) sofia; urgency=medium
 
   * Disable CONFIG_FB_VIRTUAL, fixes bootsplash not showing on droidian.

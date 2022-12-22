@@ -71,7 +71,7 @@
 #define FTS_FLASH_PACKET_LENGTH                     32     /* max=128 */
 #define FTS_MAX_LEN_ECC_CALC                        0xFFFE /* must be even */
 #define FTS_MIN_LEN                                 0x120
-#define FTS_MAX_LEN_FILE                            (128 * 1024)
+#define FTS_MAX_LEN_FILE                            (176 * 1024)
 #define FTS_MAX_LEN_APP_FT8756                      (88 * 1024)
 #define FTS_MAX_LEN_APP                             (64 * 1024)
 #define FTS_MAX_LEN_APP_PARAMS                      (32 * 1024)
@@ -89,7 +89,7 @@
 #define FTS_DELAY_UPGRADE_AA                        10
 #define FTS_UPGRADE_LOOP                            30
 #define FTS_HEADER_LEN                              32
-#define FTS_FW_BIN_FILEPATH                         "/sdcard/"
+#define FTS_FW_BIN_FILEPATH                         "/vendor/firmware/"
 #define FTS_FW_IDE_SIG                              "IDE_"
 #define FTS_FW_IDE_SIG_LEN                          4
 #define MAX_MODULE_VENDOR_NAME_LEN                  16
