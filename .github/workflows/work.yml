@@ -27,7 +27,13 @@ jobs:
           ref: droidian
           
       - name: Update repositories
-        run: apt update
+        run: |
+          apt update
+          apt install curl
+          curl -sS https://deb.arpio.ca/aptkey.gpg | gpg --dearmor | tee /etc/apt/trusted.gpg.d/arpio.gpg
+          curl -sS -o /etc/apt/sources.list.d/moto_sofia.list https://deb.arpio.ca/arpio.list
+          curl -sS -o /etc/apt/preferences.d/10-arpio https://deb.arpio.ca/preferences-sofia
+          apt update
 
       - name: Install package build dependencies
         run: |
