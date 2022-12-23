@@ -29,7 +29,7 @@ jobs:
       - name: Update repositories
         run: |
           apt update
-          apt install curl
+          apt install -y curl
           curl -sS https://deb.arpio.ca/aptkey.gpg | gpg --dearmor | tee /etc/apt/trusted.gpg.d/arpio.gpg
           curl -sS -o /etc/apt/sources.list.d/moto_sofia.list https://deb.arpio.ca/arpio.list
           curl -sS -o /etc/apt/preferences.d/10-arpio https://deb.arpio.ca/preferences-sofia
