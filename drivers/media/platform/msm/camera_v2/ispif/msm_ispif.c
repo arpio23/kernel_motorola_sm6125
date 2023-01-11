@@ -454,9 +454,7 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 	CDBG("%s: VFE0 done\n", __func__);
 
 	if (timeout <= 0) {
-		rc = -ETIMEDOUT;
-		pr_err("%s: VFE0 reset wait timeout\n", __func__);
-		goto clk_disable;
+		pr_warn("%s: VFE0 reset wait timeout\n", __func__);
 	}
 
 	if (ispif->hw_num_isps > 1) {
@@ -468,8 +466,7 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 				msecs_to_jiffies(500));
 		CDBG("%s: VFE1 done\n", __func__);
 		if (timeout <= 0) {
-			pr_err("%s: VFE1 reset wait timeout\n", __func__);
-			rc = -ETIMEDOUT;
+			pr_warn("%s: VFE1 reset wait timeout\n", __func__);
 		}
 	}
 

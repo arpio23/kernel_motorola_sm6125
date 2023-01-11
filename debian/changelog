@@ -1,9 +1,17 @@
+linux-android-motorola-sofia (0.1.0-1) sofia; urgency=medium
+
+  * msm: camera_v2: Replace the error with a warning on reset timeout.
+  * Fixes camera on waydroid
+
+
+ -- arpio23 <alex@familyrutz.com>  Wed, 11 Jan 2023 13:17:35 -0700
+
 linux-android-motorola-sofia (0.0.1-5) sofia; urgency=medium
 
   * [workflow] Add custom repos. Need to use patched initramfs-tools-halium
 
 
- -- arpio23 <alex@familyrutz.com>  Thu, 22 Dec 2022 20:17:35 -0700
+ -- arpio23 <alex@familyrutz.com>  Thu, 22 Dec 2022 20:51:46 -0700
 
 linux-android-motorola-sofia (0.0.1-4) sofia; urgency=medium
 
