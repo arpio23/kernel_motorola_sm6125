@@ -1,3 +1,11 @@
+linux-android-motorola-sofia (0.1.0-2) sofia; urgency=medium
+
+  * msm: camera_v2: Restore the msm_actuator_get_position function from motorola
+    Needed for the focus to work.
+
+
+ -- arpio23 <alex@familyrutz.com>  Tue, 17 Jan 2023 06:40:35 -0700
+
 linux-android-motorola-sofia (0.1.0-1) sofia; urgency=medium
 
   * msm: camera_v2: Replace the error with a warning on reset timeout.
