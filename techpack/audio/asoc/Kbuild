@@ -194,10 +194,9 @@ CDEFINES +=	-DANI_LITTLE_BYTE_ENDIAN \
 		-DANI_OS_TYPE_ANDROID=6 \
 		-DPTT_SOCK_SVC_ENABLE \
 		-Wall\
-		-Werror\
 		-D__linux__
 
-ifeq ($(CONFIG_AMOGUS_DTB), y)
+ifeq ($(CONFIG_SOFIA_DTB), y)
 CDEFINES += -DCONFIG_TAS25XX_ALGO
 endif
 

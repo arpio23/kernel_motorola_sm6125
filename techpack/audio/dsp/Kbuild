@@ -91,7 +91,7 @@ MOTO_KERN_INC := -I$(ANDROID_BUILD_TOP)/motorola/kernel/modules/include
 ifneq ($(filter m y,$(CONFIG_CIRRUS_PLAYBACK)),)
 	EXTRA_CFLAGS += -DCONFIG_CIRRUS_PLAYBACK
 endif
-ifeq ($(CONFIG_AMOGUS_DTB), y)
+ifeq ($(CONFIG_SOFIA_DTB), y)
 	EXTRA_CFLAGS += -DCONFIG_TAS25XX_ALGO
 endif
 
@@ -169,7 +169,6 @@ CDEFINES +=	-DANI_LITTLE_BYTE_ENDIAN \
 		-DANI_OS_TYPE_ANDROID=6 \
 		-DPTT_SOCK_SVC_ENABLE \
 		-Wall\
-		-Werror\
 		-D__linux__
 
 KBUILD_CPPFLAGS += $(CDEFINES)
