@@ -1,3 +1,8 @@
+linux-android-motorola-sofia (0.1.0-3) sofia; urgency=medium
+
+  * Add techpack audio for trinket.
+      Boots droidian with A10 and A11 vendor, but no audio with A11 vendor.
+
 linux-android-motorola-sofia (0.1.0-2) sofia; urgency=medium
 
   * msm: camera_v2: Restore the msm_actuator_get_position function from motorola
